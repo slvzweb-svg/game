@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zone Fall - Command Center</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,900;1,900&family=Rajdhani:wght@500;600;700&display=swap');
+
+        :root {
+            --primary: #ff1a1a;
+            --primary-glow: rgba(255, 26, 26, 0.6);
+            --accent: #ff8000;
+            --dark-panel: rgba(10, 10, 12, 0.85);
+            --border-ui: rgba(255, 255, 255, 0.1);
+            --success: #00ff41;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body { background: #050505; color: white; width: 100vw; height: 100vh; overflow: hidden; }
+
+        /* --- 🎨 FUNDO VIVO (CENA DO MAPA) --- */
+        #lobby-scene {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.8)), 
+                        url('https://images.unsplash.com/photo-1519074063912-ad2a602159d7?q=80&w=2070&auto=format&fit=crop') center/cover;
+            z-index: -1;
+            filter: contrast(1.1) brightness(0.8);
+        }
+
+        .fog {
+            position: absolute; top: 0; left: 0; width: 200%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
+            opacity: 0.1; animation: fogMove 60s linear infinite;
+        }
+        @keyframes fogMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* Luzes Piscando (Alerta) */
+        .emergency-light {
+            position: absolute; top: 20px; right: 20px; width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, transparent 70%);
+            animation: pulseLight 2s infinite;
+        }
+        @keyframes pulseLight { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+        /* --- 💰 TOPO: RECURSOS --- */
+        .top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 40px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 100;
+        }
+
+        .resources { display: flex; gap: 20px; }
+        .res-item { 
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border-ui);
+            padding: 5px 15px; border-radius: 4px; display: flex; align-items: center; gap: 8px;
+        }
+        .res-item.premium { border-color: #00d2ff; color: #00d2ff; }
+
+        .top-icons { display: flex; gap: 15px; }
+        .icon-btn { cursor: pointer; transition: 0.2s; position: relative; }
+        .icon-btn:hover { transform: scale(1.1); filter: drop-shadow(0 0 5px white); }
+        .badge { position: absolute; top: -5px; right: -5px; background: red; font-size: 10px; padding: 2px 5px; border-radius: 50%; }
+
+        /* --- 👤 PERFIL (CANTO ESQUERDO TOPO) --- */
+        .profile-card {
+            display: flex; align-items: center; gap: 12px; cursor: pointer;
+            background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 40px 10px 10px 40px;
+            border-left: 3px solid var(--primary); transition: 0.3s;
+        }
+        .profile-card:hover { background: rgba(255,255,255,0.15); }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); }
+        .p-info h4 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .p-info span { font-size: 0.8rem; color: var(--success); font-weight: bold; }
+
+        /* --- 🧭 LADO ESQUERDO: MENU --- */
+        .side-menu {
+            position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 15px; z-index: 100;
+        }
+        .menu-item {
+            width: 180px; height: 50px; background: var(--dark-panel); border-left: 0px solid var(--primary);
+            display: flex; align-items: center; padding-left: 20px; gap: 15px; cursor: pointer;
+            clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .menu-item:hover { border-left-width: 5px; padding-left: 25px; background: rgba(40,40,45,0.9); }
+        .menu-item.active { border-left-width: 5px; background: linear-gradient(90deg, rgba(255,26,26,0.2), var(--dark-panel)); }
+        .menu-item svg { width: 20px; height: 20px; fill: #aaa; }
+        .menu-item:hover svg { fill: var(--primary); }
+
+        /* --- 👥 LADO DIREITO: SOCIAL --- */
+        .social-panel {
+            position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+            width: 220px; display: flex; flex-direction: column; gap: 10px; z-index: 100;
+        }
+        .team-slot {
+            height: 60px; background: rgba(0,0,0,0.4); border: 1px dashed #444;
+            display: flex; align-items: center; justify-content: center; border-radius: 4px;
+        }
+        .slot-add { color: #666; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+        .slot-add:hover { color: white; }
+
+        /* --- 🧍 CENTRO: PLAYER --- */
+        .player-container {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: flex-end;
+            perspective: 1000px; padding-bottom: 80px; pointer-events: none;
+        }
+        #player-model {
+            height: 85%; pointer-events: auto; cursor: grab;
+            filter: drop-shadow(0 0 30px rgba(0,0,0,0.8));
+            transition: transform 0.1s;
+        }
+        #player-model:active { cursor: grabbing; }
+
+        /* --- ▶️ BASE: BOTÃO JOGAR --- */
+        .bottom-action {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 100;
+        }
+
+        .mode-selector {
+            display: flex; gap: 10px; background: rgba(0,0,0,0.8); padding: 5px; border-radius: 5px;
+            border: 1px solid var(--border-ui);
+        }
+        .mode-opt {
+            padding: 8px 20px; font-weight: bold; cursor: pointer; border-radius: 3px;
+            font-size: 0.8rem; text-transform: uppercase; transition: 0.3s;
+        }
+        .mode-opt.active { background: var(--primary); color: white; box-shadow: 0 0 15px var(--primary-glow); }
+        .mode-opt.locked { opacity: 0.3; cursor: not-allowed; }
+
+        .play-btn {
+            width: 350px; height: 80px; background: linear-gradient(to bottom, #ff3333, #800000);
+            border: none; color: white; font-size: 2.2rem; font-weight: 900; letter-spacing: 5px;
+            cursor: pointer; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+            animation: pulseBtn 2s infinite; transition: 0.2s;
+        }
+        .play-btn:active { transform: scale(0.95); }
+        @keyframes pulseBtn { 0%, 100% { box-shadow: 0 0 20px var(--primary-glow); } 50% { box-shadow: 0 0 40px var(--primary); } }
+
+        /* --- 🌍 MAP BANNER --- */
+        .map-info {
+            position: absolute; bottom: 40px; right: 40px; width: 250px;
+            background: var(--dark-panel); border: 1px solid var(--border-ui); padding: 15px;
+            border-radius: 8px; text-align: right;
+        }
+        .map-info h5 { color: var(--primary); font-size: 0.7rem; letter-spacing: 2px; }
+        .map-info p { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .progress-mini { width: 100%; height: 4px; background: #222; border-radius: 2px; overflow: hidden; }
+        .progress-fill { width: 65%; height: 100%; background: var(--primary); }
+
+        /* --- 💬 CHAT --- */
+        .chat-box {
+            position: absolute; bottom: 40px; left: 40px; width: 300px; height: 40px;
+            background: rgba(0,0,0,0.6); border: 1px solid var(--border-ui);
+            display: flex; align-items: center; padding: 0 15px; cursor: pointer;
+        }
+        .chat-box span { font-size: 0.8rem; color: #888; }
+
+        /* --- ⚙️ MODAIS (NA MESMA TELA) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; display: none;
+            justify-content: center; align-items: center; backdrop-filter: blur(10px);
+        }
+        .modal-content {
+            width: 800px; height: 500px; background: #111; border: 1px solid var(--primary);
+            padding: 30px; position: relative;
+        }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
+
+        /* Grid de Missões */
+        .mission-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 10px; border-radius: 5px;
+        }
+
+        /* HUD Settings */
+        .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .setting-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; }
+
+    </style>
+</head>
+<body>
+
+    <div id="lobby-scene">
+        <div class="fog"></div>
+        <div class="emergency-light"></div>
+    </div>
+
+    <header class="top-bar">
+        <div class="profile-card" onclick="location.href='perfil.html'">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Agente1" class="avatar">
+            <div class="p-info">
+                <h4 id="user-name">Carregando...</h4>
+                <span>NÍVEL 01 • ID: 88291</span>
+            </div>
+        </div>
+
+        <div class="resources">
+            <div class="res-item">
+                <svg width="18" height="18" fill="#ffd700" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+                <span id="gold-val">1.250</span>
+            </div>
+            <div class="res-item premium">
+                <svg width="18" height="18" fill="#00d2ff" viewBox="0 0 24 24"><path d="M12.14 2.14L3 12l9.14 9.86L21.28 12l-9.14-9.86z"/></svg>
+                <span id="gem-val">42</span>
+            </div>
+        </div>
+
+        <div class="top-icons">
+            <div class="icon-btn" onclick="openModal('notifications')">
+                <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <div class="badge">3</div>
+            </div>
+            <div class="icon-btn" onclick="openModal('settings')">
+                <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </div>
+        </div>
+    </header>
+
+    <nav class="side-menu">
+        <div class="menu-item active">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            LOBBY
+        </div>
+        <div class="menu-item" onclick="location.href='inventario.html'">
+            <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-8 0h-4V4h4v2z"/></svg>
+            INVENTÁRIO
+        </div>
+        <div class="menu-item" onclick="location.href='loja.html'">
+            <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            LOJA
+        </div>
+        <div class="menu-item" onclick="openModal('missions')">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            MISSÕES
+        </div>
+        <div class="menu-item" onclick="location.href='ranking.html'">
+            <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 11.63 21 9.55 21 7V6c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            RANKING
+        </div>
+    </nav>
+
+    <aside class="social-panel">
+        <h5 style="color: #666; font-size: 0.7rem; letter-spacing: 2px;">SQUAD UNIT</h5>
+        <div class="team-slot"><div class="slot-add">+ CONVIDAR</div></div>
+        <div class="team-slot"><div class="slot-add">+ CONVIDAR</div></div>
+        <div class="team-slot"><div class="slot-add">+ CONVIDAR</div></div>
+    </aside>
+
+    <div class="player-container">
+        <img src="https://www.pngarts.com/files/3/Soldier-PNG-Transparent-Image.png" id="player-model" alt="Soldier">
+    </div>
+
+    <div class="bottom-action">
+        <div class="mode-selector">
+            <div class="mode-opt active" onclick="setMode(this, 'solo')">Solo</div>
+            <div class="mode-opt" onclick="setMode(this, 'duo')">Duo vs Duo</div>
+            <div class="mode-opt locked">Squad</div>
+            <div class="mode-opt" onclick="setMode(this, 'x1')">X1 Personalizado</div>
+        </div>
+        <button class="play-btn" onclick="startMatch()">JOGAR</button>
+        <span id="match-status" style="color: var(--success); font-size: 0.8rem; letter-spacing: 1px; visibility: hidden;">BUSCANDO PARTIDA...</span>
+    </div>
+
+    <div class="map-info">
+        <h5>OPERATIVE ZONE</h5>
+        <p>ZUMBILÂNDIA</p>
+        <div class="progress-mini"><div class="progress-fill"></div></div>
+        <small style="color: #666; font-size: 0.6rem;">SEASON 1 PROGRESS: 65%</small>
+    </div>
+
+    <div class="chat-box">
+        <span>[GLOBAL] Agente_Zero: Bora x1?</span>
+    </div>
+
+    <div id="modal-missions" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('missions')">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">MISSÕES OPERACIONAIS</h2>
+            <div class="mission-row">
+                <div>
+                    <p>Eliminar 10 Zumbis</p>
+                    <small>Recompensa: 500 Ouro</small>
+                </div>
+                <button class="res-item" style="color: #666;">COLETAR</button>
+            </div>
+            <div class="mission-row">
+                <div>
+                    <p>Sobreviver 10 Minutos</p>
+                    <small>Progresso: 4/10m</small>
+                </div>
+                <div style="width: 100px; height: 5px; background: #333;"><div style="width: 40%; height: 100%; background: var(--primary);"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('settings')">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">CONFIGURAÇÕES DE SISTEMA</h2>
+            <div class="hud-grid">
+                <div class="setting-item"><span>Gráficos Ultra</span> <input type="checkbox" checked></div>
+                <div class="setting-item"><span>Som Ambiente</span> <input type="range"></div>
+                <div class="setting-item"><span>Sensibilidade</span> <input type="range"></div>
+                <button class="game-btn primary" style="padding: 10px; margin-top: 20px;" onclick="location.href='hud_editor.html'">EDITAR HUD</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- SISTEMA DE DADOS (Simulado ou Real via Firebase) ---
+        // Aqui você puxaria do Firebase Auth
+        const userData = {
+            name: "Agente_" + Math.floor(Math.random()*900),
+            gold: 1520,
+            gems: 10
+        };
+
+        document.getElementById('user-name').innerText = userData.name;
+
+        // --- ROTAÇÃO DO PERSONAGEM (DRAG) ---
+        const model = document.getElementById('player-model');
+        let isDragging = false;
+        let startX;
+        let rotation = 0;
+
+        model.addEventListener('mousedown', (e) => { isDragging = true; startX = e.pageX; });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.pageX - startX;
+            rotation += deltaX * 0.5;
+            model.style.transform = `rotateY(${rotation}deg)`;
+            startX = e.pageX;
+        });
+
+        // Mobile touch
+        model.addEventListener('touchstart', (e) => { isDragging = true; startX = e.touches.pageX; });
+        window.addEventListener('touchend', () => isDragging = false);
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.touches.pageX - startX;
+            rotation += deltaX * 0.5;
+            model.style.transform = `rotateY(${rotation}deg)`;
+            startX = e.touches.pageX;
+        });
+
+        // --- SELEÇÃO DE MODO ---
+        window.setMode = function(el, mode) {
+            if(el.classList.contains('locked')) return;
+            document.querySelectorAll('.mode-opt').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+            console.log("Modo selecionado:", mode);
+        };
+
+        // --- MATCHMAKING ---
+        window.startMatch = function() {
+            const btn = document.querySelector('.play-btn');
+            const status = document.getElementById('match-status');
+            
+            if(btn.innerText === "CANCELAR") {
+                btn.innerText = "JOGAR";
+                btn.style.background = "linear-gradient(to bottom, #ff3333, #800000)";
+                status.style.visibility = "hidden";
+            } else {
+                btn.innerText = "CANCELAR";
+                btn.style.background = "#333";
+                status.style.visibility = "visible";
+                // Simula busca
+                setTimeout(() => {
+                    if(btn.innerText === "CANCELAR") alert("Partida Encontrada! Carregando mapa...");
+                }, 5000);
+            }
+        };
+
+        // --- MODAIS ---
+        window.openModal = function(id) {
+            document.getElementById(`modal-${id}`).style.display = 'flex';
+        };
+        window.closeModal = function(id) {
+            document.getElementById(`modal-${id}`).style.display = 'none';
+        };
+
+    </script>
+</body>
+</html>

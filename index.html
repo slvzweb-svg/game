@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MINI BR X1 - Ultra Lobby</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Montserrat:ital,wght@0,800;1,900&display=swap');
+
+        :root {
+            --fortnite-blue: #1e90ff;
+            --fortnite-yellow: #ffea00;
+            --fortnite-purple: #8a2be2;
+            --fortnite-dark: #121212;
+            --fortnite-red: #ff3e3e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: pan-x pan-y; /* Permite toques fluidos, evita bugs de zoom no mobile */
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100dvh; /* dvh resolve o bug da barra do Chrome no mobile */
+            overflow: hidden;
+            background: #050505;
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+            overscroll-behavior: none; /* Evita "puxar para atualizar" */
+        }
+
+        /* --- AVISO DE ROTAÇÃO --- */
+        #rotation-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            background: var(--fortnite-dark);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (orientation: portrait) {
+            #rotation-warning { display: flex; }
+        }
+
+        .phone-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            animation: rotatePhone 2s infinite ease-in-out;
+        }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* --- LOBBY CONTAINER --- */
+        #lobby-container {
+            width: 100vw;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at center, #2b2d42 0%, #1a1a2e 100%);
+            position: relative;
+        }
+
+        /* Grid de fundo estilo Fortnite */
+        .bg-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+        }
+
+        /* --- HEADER --- */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px; /* Reduzido para mobile */
+            background: rgba(0,0,0,0.6);
+            border-bottom: 3px solid var(--fortnite-blue);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--fortnite-yellow);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid white;
+        }
+
+        .nickname-display {
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1rem; /* Ajustado para telas menores */
+        }
+
+        /* Botão Fullscreen */
+        .btn-fullscreen {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-fullscreen:active { transform: scale(0.9); }
+        .btn-fullscreen svg { width: 20px; fill: white; }
+
+        /* --- CENTER AREA (PERSONAGEM) --- */
+        main {
+            flex-grow: 1;
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pedestal {
+            width: 250px;
+            height: 50px;
+            background: rgba(0, 229, 255, 0.2);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 10%; /* Ajuste Mobile */
+            transform: rotateX(70deg);
+            box-shadow: 0 0 50px var(--fortnite-blue);
+            border: 4px solid var(--fortnite-blue);
+        }
+
+        .character-svg {
+            height: 45dvh; /* Ajuste flexível para não bugar em celulares pequenos */
+            max-height: 280px;
+            width: auto;
+            position: absolute;
+            bottom: 12%;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        /* --- LATERAIS --- */
+        .side-menu {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 15;
+        }
+
+        .icon-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid white;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .icon-btn:active { transform: scale(0.9); }
+        .icon-btn svg { width: 25px; fill: white; }
+
+        /* --- FOOTER (PLAY) --- */
+        footer {
+            position: relative;
+            z-index: 10;
+            padding: 15px 20px; /* Ajuste mobile */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        }
+
+        .modes-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-card {
+            width: 100px;
+            height: 60px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card.active {
+            border-color: var(--fortnite-yellow);
+            background: rgba(255, 234, 0, 0.1);
+        }
+
+        .mode-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .mode-card span {
+            font-weight: 900;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+        }
+
+        .lock-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--fortnite-red);
+            font-size: 8px;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .play-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .ip-input-box {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid var(--fortnite-blue);
+            padding: 6px 12px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ip-input-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-family: 'Montserrat';
+            font-weight: 900;
+            width: 120px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-play {
+            background: var(--fortnite-yellow);
+            color: black;
+            padding: 10px 40px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b2a300;
+            text-shadow: 1px 1px 0 white;
+            transition: 0.1s;
+        }
+
+        .btn-play:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b2a300;
+        }
+
+        /* --- MODAIS E POPUPS --- */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100dvh;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            background: #222;
+            width: 90%;
+            max-width: 350px;
+            padding: 25px;
+            border-radius: 20px;
+            border: 4px solid var(--fortnite-blue);
+            text-align: center;
+        }
+
+        .modal h2 {
+            font-family: 'Luckiest Guy';
+            color: var(--fortnite-yellow);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .btn-confirm {
+            background: var(--fortnite-blue);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* --- TOAST --- */
+        #toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--fortnite-purple);
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: 2px solid white;
+            font-weight: 900;
+            z-index: 1000;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+        }
+
+        #toast.show { top: 20px; }
+
+    </style>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        
+                 const firebaseConfig = {
+            apiKey: "AIzaSyCevJAebGzPrKOadYHfh5JDcYGQmlKyRd8",
+            authDomain: "joy-core.firebaseapp.com",
+            databaseURL: "https://joy-core-default-rtdb.firebaseio.com", // Adicionado o link do banco usando seu projectId
+            projectId: "joy-core",
+            storageBucket: "joy-core.firebasestorage.app",
+            messagingSenderId: "418254350950",
+            appId: "1:418254350950:web:d390ef983c37e8730e9ba7",
+            measurementId: "G-D5GC14MJKH"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        window.db = getDatabase(app);
+        
+    </script>
+</head>
+<body>
+
+    <div id="rotation-warning">
+        <svg class="phone-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" />
+            <line x1="12" y1="18" x2="12" y2="18.01" />
+        </svg>
+        <h2 style="font-family: 'Luckiest Guy'; color: var(--fortnite-yellow);">GIRE O CELULAR</h2>
+        <p>Este jogo deve ser jogado na horizontal para melhor experiência!</p>
+    </div>
+
+    <div id="toast">Mensagem do Jogo!</div>
+
+    <div id="lobby-container">
+        <div class="bg-grid"></div>
+
+        <header>
+            <div class="player-card" onclick="openNicknameModal()">
+                <div class="player-avatar">
+                    <svg width="25" viewBox="0 0 24 24" fill="black"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div class="nickname-display" id="display-name">JOGADOR_X</div>
+            </div>
+            
+            <div class="header-right">
+                <div class="nickname-display" style="color: var(--fortnite-yellow);">V: 0</div>
+                <div class="btn-fullscreen" onclick="toggleFullScreen()" title="Tela Cheia">
+                    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                </div>
+            </div>
+        </header>
+
+        <div class="side-menu">
+            <div class="icon-btn" onclick="showToast('Emotes em breve!')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+            </div>
+            <div class="icon-btn" onclick="document.getElementById('ip-address').focus()">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+            </div>
+        </div>
+
+        <main>
+            <div class="pedestal"></div>
+            
+            <svg class="character-svg" viewBox="0 0 200 400">
+                <rect x="70" y="300" width="20" height="80" fill="#333" />
+                <rect x="110" y="300" width="20" height="80" fill="#333" />
+                <path d="M60 150 L140 150 L130 310 L70 310 Z" fill="#1e90ff" stroke="white" stroke-width="4"/>
+                <rect x="40" y="160" width="25" height="100" rx="10" fill="#ffdbac" />
+                <rect x="135" y="160" width="25" height="100" rx="10" fill="#ffdbac" />
+                <circle cx="100" cy="100" r="45" fill="#ffdbac" stroke="white" stroke-width="4"/>
+                <path d="M55 90 Q100 30 145 90 Z" fill="#ffea00" />
+                <circle cx="85" cy="100" r="5" fill="black"/>
+                <circle cx="115" cy="100" r="5" fill="black"/>
+            </svg>
+        </main>
+
+        <footer>
+            <div class="modes-container">
+                <div class="mode-card active" onclick="selectMode('x1')">
+                    <svg width="20" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm0 3.45l7.75 13.55H4.25L12 5.45z"/></svg>
+                    <span>X1 LOCAL</span>
+                </div>
+                <div class="mode-card disabled" onclick="showToast('Duo Indisponível!')">
+                    <span class="lock-badge">LOCK</span>
+                    <svg width="20" viewBox="0 0 24 24" fill="#666"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    <span>DUO</span>
+                </div>
+            </div>
+
+            <div class="play-section">
+                <div class="ip-input-box">
+                    <span>IP:</span>
+                    <input type="text" id="ip-address" placeholder="192.168.x.x" value="localhost">
+                </div>
+                <button class="btn-play" onclick="startMatch()">JOGAR</button>
+            </div>
+        </footer>
+    </div>
+
+    <div id="nickname-modal" class="overlay">
+        <div class="modal">
+            <h2>NICKNAME</h2>
+            <input type="text" id="nickname-input" maxlength="12" placeholder="Digite seu nome...">
+            <button class="btn-confirm" onclick="saveNickname()">CONFIRMAR</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GERENCIAMENTO DE ESTADO ---
+        let gameState = {
+            nickname: localStorage.getItem('miniBR_nick') || 'JOGADOR_1',
+            ip: localStorage.getItem('miniBR_ip') || 'localhost',
+            mode: 'x1'
+        };
+
+        // Inicialização
+        window.onload = () => {
+            document.getElementById('display-name').innerText = gameState.nickname;
+            document.getElementById('nickname-input').value = gameState.nickname;
+            document.getElementById('ip-address').value = gameState.ip;
+        };
+
+        // --- FULLSCREEN (Esconder Chrome UI) ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    showToast(`Erro ao ativar tela cheia: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // --- FUNÇÕES DE UI ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function openNicknameModal() {
+            document.getElementById('nickname-modal').style.display = 'flex';
+        }
+
+        function saveNickname() {
+            const newNick = document.getElementById('nickname-input').value.trim();
+            if(newNick.length > 2) {
+                gameState.nickname = newNick;
+                localStorage.setItem('miniBR_nick', newNick);
+                document.getElementById('display-name').innerText = newNick;
+                document.getElementById('nickname-modal').style.display = 'none';
+                showToast("Nick alterado!");
+            } else {
+                showToast("Nick muito curto!");
+            }
+        }
+
+        function selectMode(m) {
+            gameState.mode = m;
+            showToast(`Modo ${m.toUpperCase()} selecionado!`);
+        }
+
+        // --- TRANSIÇÃO PARA A PARTIDA REAL ---
+        function startMatch() {
+            const ip = document.getElementById('ip-address').value;
+            localStorage.setItem('miniBR_ip', ip);
+            
+            const btn = document.querySelector('.btn-play');
+            btn.innerText = "CARREGANDO...";
+            btn.disabled = true;
+
+            showToast("Conectando ao servidor...");
+            
+            // Garantir que a tela cheia seja ativada antes de iniciar a partida (requer interação do usuário)
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            }
+
+            // Redirecionamento real para a página do jogo via URL Parameters
+            setTimeout(() => {
+                const gameUrl = `menu.html?ip=${encodeURIComponent(ip)}&nick=${encodeURIComponent(gameState.nickname)}&mode=${gameState.mode}`;
+                window.location.href = gameUrl;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
