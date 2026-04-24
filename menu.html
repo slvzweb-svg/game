@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MINI BR X1 - Arena</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Montserrat:wght@800;900&display=swap');
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100vw; height: 100dvh; background: #111; overflow: hidden;
+            font-family: 'Montserrat', sans-serif; color: white;
+            touch-action: none; overscroll-behavior: none;
+        }
+
+        /* --- HUD --- */
+        #hud-layer {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            z-index: 20; pointer-events: none;
+        }
+
+        .player-info { display: flex; flex-direction: column; gap: 5px; }
+        .player-name { font-family: 'Luckiest Guy'; font-size: 1.2rem; text-shadow: 2px 2px 0 #000; }
+        
+        .hp-bar-bg {
+            width: 150px; height: 20px; background: rgba(0,0,0,0.8);
+            border: 2px solid white; border-radius: 10px; overflow: hidden; position: relative;
+        }
+        .hp-bar-fill { height: 100%; transition: width 0.1s linear; }
+        .hp-text { position: absolute; width: 100%; text-align: center; top: 1px; font-size: 0.8rem; font-weight: 900; text-shadow: 1px 1px 0 #000; }
+
+        .score-board {
+            background: rgba(0,0,0,0.8); border: 2px solid #ffea00;
+            padding: 5px 20px; border-radius: 8px; text-align: center;
+            font-family: 'Luckiest Guy'; font-size: 1.8rem; text-shadow: 2px 2px 0 #000;
+        }
+
+        /* --- MENUS --- */
+        #weapon-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+            background: rgba(0,0,0,0.95); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #weapon-screen h1 { font-family: 'Luckiest Guy'; color: #ffea00; font-size: 2rem; margin-bottom: 20px; }
+        .weapon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 95%; max-height: 70vh; padding: 10px; }
+        .weapon-card { background: #222; border: 3px solid #555; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; pointer-events: auto; }
+        .weapon-card:active { transform: scale(0.95); }
+        .weapon-card h3 { font-size: 0.9rem; margin-bottom: 5px; }
+        .weapon-card p { font-size: 0.65rem; color: #aaa; }
+
+        #announcer {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Luckiest Guy'; font-size: 3rem; color: #ffea00;
+            text-shadow: 4px 4px 0 #000; z-index: 50; display: none; text-align: center; pointer-events: none;
+        }
+
+        /* --- CONTROLES --- */
+        .joystick-zone {
+            position: absolute; bottom: 30px; width: 140px; height: 140px;
+            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%; pointer-events: auto; z-index: 15;
+            touch-action: none;
+        }
+        #joy-move { left: 30px; }
+        #joy-aim { right: 30px; }
+        
+        .knob {
+            width: 50px; height: 50px; background: rgba(255,255,255,0.7);
+            border-radius: 50%; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; will-change: transform;
+        }
+
+        #btn-shoot {
+            position: absolute; bottom: 190px; right: 40px; width: 80px; height: 80px;
+            background: rgba(255, 62, 62, 0.4); border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-family: 'Luckiest Guy', sans-serif; font-size: 1.2rem; color: white;
+            z-index: 15; pointer-events: auto; touch-action: none; transition: 0.1s;
+        }
+
+        /* --- CANVAS --- */
+        #game-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        canvas { background: #556b2f; background-image: linear-gradient(rgba(0,0,0,0.15) 2px, transparent 2px), linear-gradient(90deg, rgba(0,0,0,0.15) 2px, transparent 2px); background-size: 50px 50px; box-shadow: 0 0 0 8px #222; }
+    </style>
+</head>
+<body>
+
+    <div id="weapon-screen">
+        <h1>ESCOLHA SUA ARMA</h1>
+        <div class="weapon-grid" id="weapon-list"></div>
+    </div>
+
+    <div id="announcer">ROUND 1</div>
+
+    <div id="hud-layer">
+        <div class="player-info" style="align-items: flex-start;">
+            <div class="player-name" style="color: #1e90ff;">VOCÊ</div>
+            <div class="hp-bar-bg"><div class="hp-bar-fill" id="my-hp-bar" style="background: #1e90ff; width: 100%;"></div><div class="hp-text" id="my-hp-text">100</div></div>
+        </div>
+        <div class="score-board"><span style="color: #1e90ff;" id="score-p1">0</span> <span style="color: white;">-</span> <span style="color: #ff3e3e;" id="score-p2">0</span></div>
+        <div class="player-info" style="align-items: flex-end;">
+            <div class="player-name" style="color: #ff3e3e;">INIMIGO</div>
+            <div class="hp-bar-bg"><div class="hp-bar-fill" id="enemy-hp-bar" style="background: #ff3e3e; width: 100%;"></div><div class="hp-text" id="enemy-hp-text">100</div></div>
+        </div>
+    </div>
+
+    <div class="joystick-zone" id="joy-move"><div class="knob" id="knob-move"></div></div>
+    <div class="joystick-zone" id="joy-aim"><div class="knob" id="knob-aim"></div></div>
+    <div id="btn-shoot">ATIRAR</div>
+
+    <div id="game-container"><canvas id="gameCanvas" width="600" height="600"></canvas></div>
+
+    <script>
+        // --- CONFIGURAÇÕES ---
+        const WEAPONS = {
+            "Pistola": { type: 'pistol', dmg: 20, speed: 12, fireRate: 350, color: '#fff' },
+            "SMG Leve": { type: 'smg', dmg: 8, speed: 14, fireRate: 100, color: '#ffea00' },
+            "SMG P90": { type: 'smg', dmg: 11, speed: 15, fireRate: 120, color: '#ffea00' },
+            "Shotgun Pump": { type: 'shotgun', dmg: 15, speed: 10, fireRate: 800, count: 5, spread: 0.3, color: '#ff3e3e' },
+            "Shotgun Tática": { type: 'shotgun', dmg: 10, speed: 11, fireRate: 500, count: 4, spread: 0.4, color: '#ff3e3e' },
+            "Shotgun Pesada": { type: 'shotgun', dmg: 25, speed: 13, fireRate: 1200, count: 3, spread: 0.15, color: '#ff3e3e' },
+            "Sniper Bolt": { type: 'sniper', dmg: 85, speed: 25, fireRate: 1500, color: '#8a2be2' },
+            "Sniper Semi": { type: 'sniper', dmg: 45, speed: 22, fireRate: 700, color: '#8a2be2' },
+        };
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const MAP_SIZE = 600;
+        const PLAYER_RADIUS = 20;
+
+        function resizeCanvas() {
+            const scale = Math.min(window.innerWidth / 620, window.innerHeight / 620);
+            canvas.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        // --- ESTADO DO JOGO ---
+        let currentWeapon = null;
+        let bullets = [];
+        let score = { me: 0, enemy: 0 };
+        let isRoundActive = false;
+        let lastShotTime = 0;
+        let lastBotShotTime = 0;
+
+        let me = { x: 100, y: 100, hp: 100, angle: 0, color: '#1e90ff' };
+        let enemy = { x: 500, y: 500, hp: 100, angle: Math.PI, color: '#ff3e3e' };
+
+        let input = { moveX: 0, moveY: 0, aimX: 0, aimY: 0 };
+        let isShooting = false;
+
+        // --- NOVO SISTEMA DE JOYSTICK (POINTER EVENTS - 100% ANTI-TRAVAMENTO) ---
+        function createJoystick(zoneId, knobId, isAim) {
+            const zone = document.getElementById(zoneId);
+            const knob = document.getElementById(knobId);
+            const maxDist = 45;
+            let activeId = null;
+            let center = { x: 0, y: 0 };
+
+            function updateKnob(clientX, clientY) {
+                let dx = clientX - center.x;
+                let dy = clientY - center.y;
+                let dist = Math.hypot(dx, dy);
+
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+
+                knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+                let normX = dist === 0 ? 0 : dx / maxDist;
+                let normY = dist === 0 ? 0 : dy / maxDist;
+
+                if (isAim) {
+                    input.aimX = normX; input.aimY = normY;
+                } else {
+                    input.moveX = normX; input.moveY = normY;
+                }
+            }
+
+            zone.addEventListener('pointerdown', e => {
+                if (activeId !== null) return;
+                activeId = e.pointerId;
+                zone.setPointerCapture(e.pointerId);
+                const rect = zone.getBoundingClientRect();
+                center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+                updateKnob(e.clientX, e.clientY);
+            });
+
+            zone.addEventListener('pointermove', e => {
+                if (activeId === e.pointerId) updateKnob(e.clientX, e.clientY);
+            });
+
+            function handleEnd(e) {
+                if (activeId === e.pointerId) {
+                    activeId = null;
+                    zone.releasePointerCapture(e.pointerId);
+                    knob.style.transform = `translate(-50%, -50%)`;
+                    if(isAim) { input.aimX = 0; input.aimY = 0; } 
+                    else { input.moveX = 0; input.moveY = 0; }
+                }
+            }
+
+            zone.addEventListener('pointerup', handleEnd);
+            zone.addEventListener('pointercancel', handleEnd);
+        }
+
+        // --- BOTAO DE TIRO ---
+        const btnShoot = document.getElementById('btn-shoot');
+        btnShoot.addEventListener('pointerdown', e => {
+            isShooting = true;
+            btnShoot.setPointerCapture(e.pointerId);
+            btnShoot.style.background = 'rgba(255, 62, 62, 0.8)';
+            btnShoot.style.transform = 'scale(0.9)';
+        });
+        
+        function stopShooting(e) {
+            isShooting = false;
+            btnShoot.releasePointerCapture(e.pointerId);
+            btnShoot.style.background = 'rgba(255, 62, 62, 0.4)';
+            btnShoot.style.transform = 'scale(1)';
+        }
+        btnShoot.addEventListener('pointerup', stopShooting);
+        btnShoot.addEventListener('pointercancel', stopShooting);
+
+        // --- INTERFACE E ARMAS ---
+        const weaponList = document.getElementById('weapon-list');
+        for (let [name, stats] of Object.entries(WEAPONS)) {
+            let btn = document.createElement('div');
+            btn.className = `weapon-card`; btn.style.borderColor = stats.color;
+            btn.innerHTML = `<h3 style="color:${stats.color}">${name}</h3><p>Dano: ${stats.dmg}</p>`;
+            btn.onclick = () => {
+                currentWeapon = stats;
+                document.getElementById('weapon-screen').style.display = 'none';
+                startGame();
+            };
+            weaponList.appendChild(btn);
+        }
+
+        function announce(text, time) {
+            const el = document.getElementById('announcer');
+            el.innerText = text; el.style.display = 'block';
+            if(time) setTimeout(() => el.style.display = 'none', time);
+        }
+
+        function updateHUD() {
+            document.getElementById('my-hp-bar').style.width = Math.max(0, me.hp) + '%';
+            document.getElementById('my-hp-text').innerText = Math.max(0, Math.floor(me.hp));
+            document.getElementById('enemy-hp-bar').style.width = Math.max(0, enemy.hp) + '%';
+            document.getElementById('enemy-hp-text').innerText = Math.max(0, Math.floor(enemy.hp));
+            document.getElementById('score-p1').innerText = score.me;
+            document.getElementById('score-p2').innerText = score.enemy;
+        }
+
+        function startGame() {
+            announce("ROUND 1", 2000);
+            isRoundActive = true;
+            updateHUD();
+            gameLoop();
+        }
+
+        // --- FÍSICA E COMBATE ---
+        function fireBullet(x, y, angle, weapon, isMine) {
+            bullets.push({
+                x: x + Math.cos(angle) * (PLAYER_RADIUS + 15),
+                y: y + Math.sin(angle) * (PLAYER_RADIUS + 15),
+                vx: Math.cos(angle) * weapon.speed,
+                vy: Math.sin(angle) * weapon.speed,
+                dmg: weapon.dmg, color: weapon.color, isMine: isMine, life: 100
+            });
+        }
+
+        function handlePlayerShooting() {
+            if (!isShooting || !currentWeapon) return;
+            const now = Date.now();
+            if (now - lastShotTime < currentWeapon.fireRate) return;
+            lastShotTime = now;
+
+            if (currentWeapon.type === 'shotgun') {
+                for(let i=0; i<currentWeapon.count; i++) {
+                    let spread = me.angle - currentWeapon.spread + (Math.random() * currentWeapon.spread * 2);
+                    fireBullet(me.x, me.y, spread, currentWeapon, true);
+                }
+            } else {
+                fireBullet(me.x, me.y, me.angle, currentWeapon, true);
+            }
+        }
+
+        function handleBotAI() {
+            let dx = me.x - enemy.x;
+            let dy = me.y - enemy.y;
+            let dist = Math.hypot(dx, dy);
+            enemy.angle = Math.atan2(dy, dx);
+
+            if (dist > 200) {
+                enemy.x += Math.cos(enemy.angle) * 2;
+                enemy.y += Math.sin(enemy.angle) * 2;
+            } else if (dist < 100) {
+                enemy.x -= Math.cos(enemy.angle) * 2;
+                enemy.y -= Math.sin(enemy.angle) * 2;
+            }
+
+            enemy.x = Math.max(PLAYER_RADIUS, Math.min(MAP_SIZE - PLAYER_RADIUS, enemy.x));
+            enemy.y = Math.max(PLAYER_RADIUS, Math.min(MAP_SIZE - PLAYER_RADIUS, enemy.y));
+
+            const now = Date.now();
+            if (now - lastBotShotTime > 400 && Math.random() > 0.3) {
+                lastBotShotTime = now;
+                let botSpread = enemy.angle + (Math.random() * 0.4 - 0.2);
+                fireBullet(enemy.x, enemy.y, botSpread, WEAPONS["SMG Leve"], false);
+            }
+        }
+
+        function updateGame() {
+            if (!isRoundActive) return;
+
+            // Movimento Protegido
+            if (!isNaN(input.moveX)) me.x += input.moveX * 5;
+            if (!isNaN(input.moveY)) me.y += input.moveY * 5;
+            
+            me.x = Math.max(PLAYER_RADIUS, Math.min(MAP_SIZE - PLAYER_RADIUS, me.x));
+            me.y = Math.max(PLAYER_RADIUS, Math.min(MAP_SIZE - PLAYER_RADIUS, me.y));
+
+            // Ângulo
+            if (input.aimX !== 0 || input.aimY !== 0) {
+                me.angle = Math.atan2(input.aimY, input.aimX);
+            } else if (input.moveX !== 0 || input.moveY !== 0) {
+                me.angle = Math.atan2(input.moveY, input.moveX);
+            }
+
+            handlePlayerShooting();
+            handleBotAI();
+
+            // Balas
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.x += b.vx; b.y += b.vy; b.life--;
+
+                let target = b.isMine ? enemy : me;
+                let dist = Math.hypot(b.x - target.x, b.y - target.y);
+
+                if (dist < PLAYER_RADIUS) {
+                    target.hp -= b.dmg;
+                    bullets.splice(i, 1);
+                    updateHUD();
+                    
+                    if (target.hp <= 0) { endRound(b.isMine ? 'me' : 'enemy'); break; }
+                    continue;
+                }
+
+                if (b.life <= 0 || b.x < 0 || b.x > MAP_SIZE || b.y < 0 || b.y > MAP_SIZE) {
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+
+        function endRound(winner) {
+            isRoundActive = false;
+            
+            if(winner === 'me') score.me++;
+            else score.enemy++;
+            
+            updateHUD();
+
+            if (score.me >= 7) { announce("VITÓRIA!", 0); setTimeout(() => window.location.reload(), 4000); return; } 
+            else if (score.enemy >= 7) { announce("DERROTA!", 0); setTimeout(() => window.location.reload(), 4000); return; }
+
+            announce(winner === 'me' ? "ROUND GANHO!" : "ROUND PERDIDO!", 2000);
+            
+            setTimeout(() => {
+                me.hp = 100; enemy.hp = 100;
+                me.x = 100; me.y = 100; enemy.x = 500; enemy.y = 500;
+                bullets = []; updateHUD();
+                announce(`ROUND ${score.me + score.enemy + 1}`, 2000);
+                isRoundActive = true;
+            }, 2000);
+        }
+
+        // --- RENDERIZAÇÃO ---
+        function drawPlayer(p) {
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+            
+            ctx.fillStyle = '#666'; ctx.fillRect(0, -5, PLAYER_RADIUS + 15, 10);
+            ctx.strokeRect(0, -5, PLAYER_RADIUS + 15, 10);
+
+            ctx.beginPath(); ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = p.color; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
+
+            ctx.beginPath(); ctx.arc(PLAYER_RADIUS, -12, 6, 0, Math.PI*2); ctx.arc(PLAYER_RADIUS, 12, 6, 0, Math.PI*2);
+            ctx.fillStyle = '#ffdbac'; ctx.fill(); ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, MAP_SIZE, MAP_SIZE);
+            bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fillStyle = b.color; ctx.fill(); });
+            if (me.hp > 0) drawPlayer(me);
+            if (enemy.hp > 0) drawPlayer(enemy);
+        }
+
+        function gameLoop() {
+            updateGame(); draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // INICIAR JOYSTICKS
+        createJoystick('joy-move', 'knob-move', false);
+        createJoystick('joy-aim', 'knob-aim', true);
+    </script>
+</body>
+</html>
