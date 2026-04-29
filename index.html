@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ECHO TRAP - PLATFORMER EDITION</title>
+    <style>
+        body { margin: 0; background: #050510; overflow: hidden; font-family: 'Courier New', Courier, monospace; touch-action: none; }
+        canvas { display: block; margin: 0 auto; background: #0a0a1a; }
+        
+        /* UI Mobile */
+        #mobile-controls { display: none; position: absolute; width: 100%; height: 100%; pointer-events: none; }
+        .btn {
+            position: absolute; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255,255,255,0.4);
+            color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; pointer-events: auto; user-select: none; font-size: 24px; z-index: 10;
+        }
+        .btn:active { background: rgba(255, 255, 255, 0.4); }
+        
+        /* Controles Esquerdos (Setas) */
+        #btn-left { bottom: 30px; left: 20px; width: 70px; height: 70px; }
+        #btn-right { bottom: 30px; left: 100px; width: 70px; height: 70px; }
+        
+        /* Controle Direito (Pulo) */
+        #btn-jump { bottom: 30px; right: 30px; width: 80px; height: 80px; border-radius: 50%; }
+        
+        /* Pause Topo Centro */
+        #btn-pause { top: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 40px; font-size: 16px; border-radius: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="mobile-controls">
+        <div class="btn" id="btn-left">◄</div>
+        <div class="btn" id="btn-right">►</div>
+        <div class="btn" id="btn-jump">▲</div>
+        <div class="btn" id="btn-pause">| |</div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+/**
+ * ECHO TRAP - PLATFORMER EDITION
+ * Foco: Movimento fluído, Wrap-around, Plataformas e Echos rápidos.
+ */
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const mobileUI = document.getElementById('mobile-controls');
+
+// Variáveis Globais
+let width, height;
+let score = 0;
+let gameState = 'START'; // START, PLAYING, PAUSED, GAMEOVER
+let frameCount = 0;
+let history = []; 
+
+// Física
+const GRAVITY = 0.6;
+const FRICTION = 0.8;
+const REPLAY_DELAY = 90; // INIMIGO MAIS RÁPIDO: ~1.5 segundos atrás de você
+
+// Entidades
+const player = {
+    x: 0, y: 0, width: 25, height: 25, color: '#ffffff',
+    vx: 0, vy: 0, speed: 1.2, maxSpeed: 6, jumpPower: 12,
+    grounded: false,
+    move: { left: false, right: false, jump: false }
+};
+
+let platforms = [];
+let orbs = [];
+let echos = [];
+let gameSpeed = 1;
+
+// --- INICIALIZAÇÃO ---
+
+function init() {
+    resize();
+    window.addEventListener('resize', resize);
+    
+    // Detecta Mobile
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        mobileUI.style.display = 'block';
+        setupMobileControls();
+    } else {
+        mobileUI.style.display = 'none';
+    }
+    
+    setupKeyboardControls();
+    requestAnimationFrame(gameLoop);
+}
+
+function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    createPlatforms();
+    if (gameState === 'START') {
+        player.x = width / 2;
+        player.y = height - 50;
+    }
+}
+
+function createPlatforms() {
+    // Cria plataformas baseadas no tamanho da tela
+    platforms = [
+        { x: width * 0.1, y: height * 0.75, w: width * 0.25, h: 15 },
+        { x: width * 0.65, y: height * 0.75, w: width * 0.25, h: 15 },
+        { x: width * 0.35, y: height * 0.5, w: width * 0.3, h: 15 },
+        { x: width * 0.1, y: height * 0.25, w: width * 0.2, h: 15 },
+        { x: width * 0.7, y: height * 0.25, w: width * 0.2, h: 15 }
+    ];
+}
+
+// --- CONTROLES ---
+
+function setupKeyboardControls() {
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
+        
+        if (gameState !== 'PLAYING' && gameState !== 'PAUSED') { 
+            resetGame(); gameState = 'PLAYING'; 
+        }
+        
+        if (e.key === 'a' || e.key === 'ArrowLeft') player.move.left = true;
+        if (e.key === 'd' || e.key === 'ArrowRight') player.move.right = true;
+        if (e.key === 'w' || e.key === 'ArrowUp' || e.key === ' ') {
+            if (player.grounded) { player.vy = -player.jumpPower; player.grounded = false; }
+        }
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'a' || e.key === 'ArrowLeft') player.move.left = false;
+        if (e.key === 'd' || e.key === 'ArrowRight') player.move.right = false;
+    });
+}
+
+function setupMobileControls() {
+    const bind = (id, action, isJump = false) => {
+        const btn = document.getElementById(id);
+        btn.addEventListener('touchstart', (e) => { 
+            e.preventDefault();
+            if (id === 'btn-pause') { togglePause(); return; }
+            if (gameState !== 'PLAYING' && gameState !== 'PAUSED') { resetGame(); gameState = 'PLAYING'; }
+            if (isJump && player.grounded) { player.vy = -player.jumpPower; player.grounded = false; }
+            else if (!isJump) player.move[action] = true; 
+        });
+        btn.addEventListener('touchend', (e) => { 
+            e.preventDefault();
+            if (!isJump && id !== 'btn-pause') player.move[action] = false; 
+        });
+    };
+    bind('btn-left', 'left');
+    bind('btn-right', 'right');
+    bind('btn-jump', 'jump', true);
+    bind('btn-pause', 'pause');
+}
+
+function togglePause() {
+    if (gameState === 'PLAYING') gameState = 'PAUSED';
+    else if (gameState === 'PAUSED') gameState = 'PLAYING';
+}
+
+// --- LÓGICA DO JOGO ---
+
+function spawnOrb() {
+    // Escolhe aleatoriamente se spawna no chão ou em uma plataforma
+    let onPlatform = Math.random() > 0.3 && platforms.length > 0;
+    let targetY, targetX;
+
+    if (onPlatform) {
+        let p = platforms[Math.floor(Math.random() * platforms.length)];
+        targetX = p.x + Math.random() * (p.w - 20) + 10;
+        targetY = p.y - 15;
+    } else {
+        targetX = Math.random() * (width - 20) + 10;
+        targetY = height - 15;
+    }
+
+    orbs.push({ x: targetX, y: targetY, r: 8, pulse: 0 });
+}
+
+function resetGame() {
+    score = 0;
+    frameCount = 0;
+    history = [];
+    echos = [];
+    orbs = [];
+    gameSpeed = 1;
+    player.x = width / 2;
+    player.y = height - 50;
+    player.vx = 0; player.vy = 0;
+    spawnOrb();
+}
+
+function update() {
+    if (gameState !== 'PLAYING') return;
+
+    frameCount++;
+    gameSpeed += 0.00005; // Aceleração do caos
+
+    // Física e Movimento
+    if (player.move.left) player.vx -= player.speed;
+    if (player.move.right) player.vx += player.speed;
+    
+    player.vx *= FRICTION;
+    player.vy += GRAVITY;
+
+    // Limita velocidade X
+    if (player.vx > player.maxSpeed) player.vx = player.maxSpeed;
+    if (player.vx < -player.maxSpeed) player.vx = -player.maxSpeed;
+
+    // Posição anterior para colisão fina
+    let prevY = player.y;
+    
+    player.x += player.vx * gameSpeed;
+    player.y += player.vy;
+
+    // Wrap-around (Tela Pac-Man)
+    if (player.x + player.width < 0) player.x = width;
+    if (player.x > width) player.x = -player.width;
+
+    player.grounded = false;
+
+    // Colisão com Plataformas (só cai por cima)
+    if (player.vy >= 0) {
+        for (let p of platforms) {
+            if (player.x + player.width > p.x && player.x < p.x + p.w) {
+                if (prevY + player.height <= p.y && player.y + player.height >= p.y) {
+                    player.grounded = true;
+                    player.vy = 0;
+                    player.y = p.y - player.height;
+                }
+            }
+        }
+    }
+
+    // Colisão com o Chão
+    if (player.y + player.height >= height) {
+        player.y = height - player.height;
+        player.grounded = true;
+        player.vy = 0;
+    }
+
+    // Grava Histórico
+    history.push({ x: player.x, y: player.y });
+
+    // Spawn Inimigos (Mais agressivo)
+    if (frameCount % REPLAY_DELAY === 0) {
+        echos.push({ type: 'REPLAY' });
+    }
+    if (frameCount === 600) { // ~10s aparece o invertido
+        echos.push({ type: 'INVERTED' });
+    }
+
+    // Update Orbs
+    for (let i = orbs.length - 1; i >= 0; i--) {
+        let orb = orbs[i];
+        orb.pulse += 0.15;
+        // Colisão AABB simples com o Orb
+        let dx = (player.x + player.width/2) - orb.x;
+        let dy = (player.y + player.height/2) - orb.y;
+        if (Math.sqrt(dx*dx + dy*dy) < player.width/2 + orb.r + 5) {
+            orbs.splice(i, 1);
+            score++;
+            spawnOrb();
+            if (score % 7 === 0) spawnOrb(); // Caos de pontos
+        }
+    }
+
+    // Update e Colisão Echos
+    echos.forEach(echo => {
+        let ex, ey;
+        
+        if (echo.type === 'REPLAY') {
+            let histIndex = Math.max(0, frameCount - REPLAY_DELAY);
+            let pos = history[histIndex] || history;
+            ex = pos.x; ey = pos.y;
+        } else if (echo.type === 'INVERTED') {
+            // Invertido caça como fantasma cruzado
+            ex = width - player.x - player.width;
+            ey = player.y; // Mantém a altura para não ficar impossível, mas inverte o eixo X
+        }
+
+        echo.x = ex; echo.y = ey;
+
+        // Wrap-around visual para echos também
+        if (echo.x < -player.width) echo.x = width;
+        if (echo.x > width) echo.x = -player.width;
+
+        // Colisão Player x Echo
+        let hitboxShrink = 4; // Margem para colisão não ser injusta
+        if (player.x + hitboxShrink < echo.x + player.width - hitboxShrink &&
+            player.x + player.width - hitboxShrink > echo.x + hitboxShrink &&
+            player.y + hitboxShrink < echo.y + player.height - hitboxShrink &&
+            player.y + player.height - hitboxShrink > echo.y + hitboxShrink) {
+            gameState = 'GAMEOVER';
+        }
+    });
+}
+
+// --- RENDERIZAÇÃO ---
+
+function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Grid de Fundo (estilo arcade)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+    ctx.lineWidth = 1;
+    for(let i=0; i<width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,height); ctx.stroke(); }
+    for(let i=0; i<height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(width,i); ctx.stroke(); }
+
+    if (gameState === 'START') {
+        drawText("ECHO TRAP", width/2, height/2 - 30, "40px", "#fff", "bold");
+        drawText("PLATFORMER EDITION", width/2, height/2 + 10, "20px", "#0ff");
+        drawText("Pressione ou Toque para Iniciar", width/2, height/2 + 60, "16px", "#888");
+        return;
+    }
+
+    // Plataformas
+    ctx.fillStyle = '#2a2a4a';
+    ctx.strokeStyle = '#4a4a8a';
+    ctx.lineWidth = 2;
+    platforms.forEach(p => {
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.strokeRect(p.x, p.y, p.w, p.h);
+    });
+
+    // Orbs
+    orbs.forEach(orb => {
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.r + Math.sin(orb.pulse)*3, 0, Math.PI*2);
+        ctx.fillStyle = '#ffea00';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ffea00';
+        ctx.fill();
+        ctx.shadowBlur = 0; // reseta
+    });
+
+    // Echos (Inimigos Fantasmas)
+    echos.forEach(echo => {
+        ctx.fillStyle = echo.type === 'REPLAY' ? 'rgba(255, 50, 50, 0.8)' : 'rgba(50, 255, 255, 0.8)';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.beginPath();
+        ctx.roundRect(echo.x, echo.y, player.width, player.height, 4);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    // Player
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.roundRect(player.x, player.y, player.width, player.height, 4);
+    ctx.fill();
+    
+    // Olhos (Virando baseado na direção)
+    ctx.fillStyle = '#000';
+    let eyeOffsetX = player.vx > 0.5 ? 4 : (player.vx < -0.5 ? -4 : 0);
+    ctx.fillRect(player.x + 6 + eyeOffsetX, player.y + 6, 4, 4);
+    ctx.fillRect(player.x + 15 + eyeOffsetX, player.y + 6, 4, 4);
+    
+    // Expressão de perigo (boca)
+    if (echos.length > 0) {
+        let closest = Infinity;
+        echos.forEach(e => {
+            let dist = Math.hypot(e.x - player.x, e.y - player.y);
+            if(dist < closest) closest = dist;
+        });
+        if (closest < 100) {
+            ctx.fillRect(player.x + 10 + eyeOffsetX, player.y + 16, 5, 5); // Boca assustada
+        }
+    }
+
+    // Score UI
+    ctx.textAlign = "left";
+    ctx.font = "bold 24px 'Courier New'";
+    ctx.fillStyle = "#fff";
+    ctx.fillText(`SCORE: ${score}`, 20, 40);
+
+    if (gameState === 'PAUSED') {
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0,0,width,height);
+        drawText("PAUSADO", width/2, height/2, "40px", "#fff", "bold");
+    }
+
+    if (gameState === 'GAMEOVER') {
+        ctx.fillStyle = "rgba(0,0,0,0.8)";
+        ctx.fillRect(0,0,width,height);
+        drawText("GAME OVER", width/2, height/2 - 20, "45px", "#ff3232", "bold");
+        drawText(`Score Final: ${score}`, width/2, height/2 + 25, "24px", "#fff");
+        drawText("Toque/Tecla para reiniciar", width/2, height/2 + 70, "16px", "#888");
+    }
+}
+
+function drawText(txt, x, y, size, color, weight="normal") {
+    ctx.font = `${weight} ${size} 'Courier New'`;
+    ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    ctx.fillText(txt, x, y);
+}
+
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+init();
+</script>
+</body>
+</html>
