@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MASTERX | Roleplay Mobile</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* =========================================
+           VARIÁVEIS DE CORES (Paleta MASTERX)
+           ========================================= */
+        :root {
+            --bg-dark: #030303;
+            --bg-alt: #0a0101; /* Fundo alternativo vermelho super escuro */
+            --bg-card: #0c0c0c;
+            --bg-card-hover: #140505;
+            --border-color: #2a0505;
+            --border-light: #3a0a0a;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #cc0000;
+            --accent-glow: rgba(204, 0, 0, 0.4);
+            --accent-hover: #ff1a1a;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* =========================================
+           RESET E CONFIGURAÇÕES GERAIS
+           ========================================= */
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        h1, h2, h3, h4, .logo, .step-num {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; object-fit: contain; }
+
+        /* Classes de utilidade */
+        .reveal {
+            opacity: 0; transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        .bg-alternate { background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-alt) 50%, var(--bg-dark) 100%); }
+
+        /* =========================================
+           NAVBAR
+           ========================================= */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(3, 3, 3, 0.85);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000; transition: var(--transition);
+        }
+
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; max-width: 1300px; margin: 0 auto;
+            padding-top: max(15px, env(safe-area-inset-top));
+        }
+
+        .logo { font-size: 1.6rem; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .logo img { height: 38px; width: auto; filter: drop-shadow(0 0 5px var(--accent-glow)); }
+        .logo span { color: var(--accent); }
+
+        .menu-toggle { font-size: 2.2rem; color: var(--text-main); cursor: pointer; display: block; }
+
+        .nav-links {
+            position: fixed; top: 0; right: -100%; height: 100dvh;
+            width: 85%; max-width: 320px;
+            background-color: var(--bg-card); border-left: 2px solid var(--accent);
+            display: flex; flex-direction: column;
+            padding: max(80px, env(safe-area-inset-top) + 60px) 30px 30px;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999; overflow-y: auto;
+            box-shadow: -15px 0 40px rgba(0,0,0,0.9);
+        }
+        .nav-links.active { right: 0; }
+
+        .nav-links a {
+            font-size: 1.1rem; margin-bottom: 25px; font-family: 'Oswald', sans-serif;
+            transition: var(--transition); display: flex; align-items: center; gap: 12px;
+            text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
+        }
+        .nav-links a i { font-size: 1.4rem; color: var(--accent); }
+        .nav-links a:hover, .nav-links a:active { color: var(--text-main); padding-left: 10px; }
+
+        .close-menu {
+            position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px;
+            font-size: 2.2rem; cursor: pointer; color: var(--accent);
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+            opacity: 0; visibility: hidden; transition: 0.3s; z-index: 998;
+        }
+        .overlay.active { opacity: 1; visibility: visible; }
+
+        /* =========================================
+           HERO
+           ========================================= */
+        .hero {
+            padding: 160px 5% 80px; min-height: 100dvh;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            background: radial-gradient(circle at top center, rgba(204,0,0,0.15) 0%, var(--bg-dark) 60%);
+            position: relative; overflow: hidden;
+        }
+
+        /* Grid Background animado pro Hero */
+        .hero::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.1; z-index: 1; pointer-events: none;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px);
+        }
+
+        .hero-img-container {
+            width: 180px; height: 180px; margin-bottom: 25px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 2;
+        }
+
+        .hero-img-container::before {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            background: var(--accent); filter: blur(50px); opacity: 0.4; z-index: -1;
+            animation: pulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.2; }
+            100% { transform: scale(1.3); opacity: 0.5; }
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 10vw, 5rem); margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.9); z-index: 2; position: relative;
+        }
+        .hero h1 span { color: var(--accent); }
+
+        .hero h2 {
+            font-size: 1.2rem; font-weight: 500; color: var(--text-muted);
+            margin-bottom: 25px; font-family: 'Montserrat', sans-serif; text-transform: none; z-index: 2; position: relative;
+        }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(204, 0, 0, 0.1); padding: 8px 20px; border-radius: 50px;
+            font-size: 0.85rem; font-weight: 600; margin-bottom: 30px;
+            border: 1px solid var(--accent); box-shadow: 0 0 15px var(--accent-glow);
+            text-transform: uppercase; letter-spacing: 1px; color: #fff; z-index: 2; position: relative;
+        }
+
+        .btn-group {
+            display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; z-index: 2; position: relative;
+        }
+
+        .btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 18px 25px; border-radius: 4px;
+            font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 1px;
+            text-transform: uppercase; transition: var(--transition); cursor: pointer;
+            text-align: center; width: 100%; border: 2px solid transparent; overflow: hidden; position: relative;
+        }
+
+        .btn-primary {
+            background-color: var(--accent); color: #fff;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+        .btn-primary:hover, .btn-primary:active {
+            background-color: var(--accent-hover); box-shadow: 0 6px 25px rgba(255,26,26,0.6);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary { background-color: rgba(10,10,10,0.8); color: #fff; border-color: var(--border-light); backdrop-filter: blur(5px); }
+        .btn-secondary:hover, .btn-secondary:active {
+            border-color: var(--accent); color: #fff; background: rgba(204,0,0,0.1);
+        }
+
+        /* =========================================
+           SEÇÕES GERAIS
+           ========================================= */
+        section { padding: 80px 5%; max-width: 1300px; margin: 0 auto; }
+
+        .section-title {
+            text-align: center; font-size: 2rem; margin-bottom: 50px;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .section-title i { font-size: 3rem; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+
+        /* =========================================
+           SOBRE / VISÃO
+           ========================================= */
+        .about-grid {
+            display: grid; grid-template-columns: 1fr; gap: 30px; align-items: center;
+        }
+        .about-box {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 40px 30px; border-radius: 8px; border-left: 4px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .about-box p { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 20px; }
+        .about-box p:last-child { margin-bottom: 0; color: #fff; font-weight: 500; font-size: 1.1rem;}
+
+        /* =========================================
+           CARREIRAS E FACÇÕES (NOVO)
+           ========================================= */
+        .careers-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .career-card {
+            position: relative; background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;
+            justify-content: flex-end; padding: 30px 20px; min-height: 200px;
+            transition: var(--transition); z-index: 1;
+        }
+        /* Fundo com gradiente para os cards */
+        .career-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 100%); z-index: -1;
+        }
+        .career-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px var(--accent-glow); }
+        .career-card i { font-size: 2.5rem; color: var(--accent); margin-bottom: 10px; }
+        .career-card h3 { font-size: 1.3rem; color: #fff; margin-bottom: 5px; }
+        .career-card p { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* =========================================
+           SISTEMAS EXCLUSIVOS (NOVO)
+           ========================================= */
+        .systems-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .system-card {
+            background: var(--bg-dark); border: 1px solid var(--border-light); padding: 25px; border-radius: 8px;
+            display: flex; align-items: flex-start; gap: 15px; transition: var(--transition);
+        }
+        .system-card:hover { background: var(--bg-card); border-color: var(--accent); }
+        .system-icon { background: rgba(204,0,0,0.1); padding: 15px; border-radius: 8px; color: var(--accent); font-size: 1.8rem; }
+        .system-info h3 { font-size: 1.1rem; margin-bottom: 5px; }
+        .system-info p { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* =========================================
+           DIFERENCIAIS
+           ========================================= */
+        .diff-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .diff-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 30px 25px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;
+            transition: var(--transition);
+        }
+        .diff-card:active, .diff-card:hover { background: var(--bg-card-hover); border-color: var(--accent); transform: scale(1.02); }
+        .diff-card i { font-size: 2.8rem; color: var(--accent); }
+        .diff-card h3 { font-size: 1.2rem; color: #fff; }
+        .diff-card p { font-size: 0.95rem; color: var(--text-muted); }
+
+        /* =========================================
+           REQUISITOS (NOVO)
+           ========================================= */
+        .req-container { display: flex; flex-direction: column; gap: 20px; }
+        .req-box {
+            background: var(--bg-card); border: 1px solid var(--border-light); padding: 30px; border-radius: 8px; flex: 1;
+        }
+        .req-box.recommended { border-color: var(--accent); position: relative; overflow: hidden; }
+        .req-box.recommended::after {
+            content: 'IDEAL'; position: absolute; top: 15px; right: -25px; background: var(--accent);
+            color: #fff; font-size: 0.7rem; font-weight: bold; padding: 5px 30px; transform: rotate(45deg); font-family: 'Oswald', sans-serif;
+        }
+        .req-title { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; margin-bottom: 20px; color: #fff; font-family: 'Oswald', sans-serif; }
+        .req-title i { color: var(--accent); font-size: 1.8rem; }
+        .req-list li { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 12px 0; font-size: 0.95rem; }
+        .req-list li:last-child { border-bottom: none; }
+        .req-list span { color: var(--text-muted); }
+        .req-list strong { color: #fff; font-weight: 500; }
+
+        /* =========================================
+           FASE ATUAL E RECRUTAMENTO
+           ========================================= */
+        .status-box {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #050000 100%);
+            border: 1px solid var(--border-color); padding: 40px 20px; border-radius: 8px; text-align: center;
+        }
+        .status-list { display: flex; flex-direction: column; gap: 15px; margin: 30px 0; }
+        .status-item {
+            display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 1.1rem; font-weight: 500;
+            background: rgba(0,0,0,0.6); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color);
+        }
+        .status-item i { font-size: 1.5rem; color: var(--accent); }
+
+        .steps-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; }
+        .step-card {
+            background: var(--bg-dark); border: 1px solid var(--border-light); padding: 25px; border-radius: 8px;
+            display: flex; align-items: center; gap: 20px; transition: var(--transition);
+        }
+        .step-card:hover { border-color: var(--accent); background: var(--bg-card); transform: translateX(10px); }
+        .step-num { font-size: 2.8rem; font-weight: 700; color: transparent; -webkit-text-stroke: 1px var(--accent); min-width: 50px; text-align: center; }
+        .step-text h3 { font-size: 1.1rem; margin-bottom: 5px; color: #fff;}
+        .step-text p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* =========================================
+           FAQ
+           ========================================= */
+        .faq-container { display: flex; flex-direction: column; gap: 15px; max-width: 900px; margin: 0 auto; }
+        .faq-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .faq-question {
+            padding: 22px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; font-weight: 600; font-family: 'Oswald', sans-serif; font-size: 1.15rem; transition: var(--transition);
+        }
+        .faq-question:hover, .faq-question:active { background: var(--bg-card-hover); color: var(--accent); }
+        .faq-question i { transition: transform 0.4s ease; font-size: 1.3rem; color: var(--accent); }
+        .faq-item.active .faq-question i { transform: rotate(180deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; background: #050000; }
+        .faq-answer p { padding: 0 22px 22px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+
+        /* =========================================
+           CTA FINAL
+           ========================================= */
+        .cta-final {
+            text-align: center; padding: 100px 5%;
+            background: linear-gradient(0deg, var(--bg-dark) 0%, transparent 100%), url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M0 100 L100 0" stroke="%232a0505" stroke-width="1" fill="none"/></svg>'), radial-gradient(circle at center, #110000 0%, #000000 100%);
+            border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+        }
+        .cta-final p { font-size: 1.5rem; font-family: 'Oswald', sans-serif; margin-bottom: 30px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .cta-final .btn { margin: 0 auto; max-width: 350px; }
+
+        /* =========================================
+           FOOTER
+           ========================================= */
+        footer { background: #000; padding: 60px 5% 40px; }
+        .footer-content { display: grid; grid-template-columns: 1fr; gap: 40px; max-width: 1300px; margin: 0 auto; border-bottom: 1px solid var(--border-color); padding-bottom: 40px; margin-bottom: 20px; }
+        
+        .footer-brand .logo { justify-content: flex-start; margin-bottom: 15px; }
+        .footer-brand p { color: var(--text-muted); font-size: 0.9rem; max-width: 300px; margin-bottom: 20px; }
+        .social-links { display: flex; gap: 20px; }
+        .social-links a { width: 45px; height: 45px; border-radius: 8px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); transition: var(--transition); border: 1px solid var(--border-color); }
+        .social-links a:hover { background: var(--accent); color: #fff; transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 5px 15px var(--accent-glow); }
+
+        .footer-links h4 { font-size: 1.1rem; color: #fff; margin-bottom: 20px; }
+        .footer-links ul { display: flex; flex-direction: column; gap: 12px; }
+        .footer-links a { color: var(--text-muted); font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
+        .footer-links a::before { content: '>'; color: var(--accent); font-weight: bold; font-family: monospace; }
+        .footer-links a:hover { color: var(--accent); padding-left: 5px; }
+
+        .footer-bottom { text-align: center; color: #555; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; }
+
+        /* =========================================
+           MEDIA QUERIES (DESKTOP)
+           ========================================= */
+        @media (min-width: 768px) {
+            .menu-toggle { display: none; }
+            .nav-links { position: static; height: auto; width: auto; background: transparent; border: none; flex-direction: row; padding: 0; gap: 35px; box-shadow: none; overflow-y: visible; }
+            .nav-links a { margin: 0; font-size: 0.95rem; }
+            .nav-links a i { display: none; } /* Esconde ícones no menu desktop para ficar mais limpo */
+            .nav-links a:hover { padding-left: 0; color: var(--accent); }
+            .close-menu { display: none; }
+            
+            .btn-group { flex-direction: row; justify-content: center; max-width: 600px; }
+            .about-grid { grid-template-columns: 1fr; max-width: 900px; margin: 0 auto; text-align: center; }
+            .diff-grid { grid-template-columns: repeat(3, 1fr); }
+            .careers-grid { grid-template-columns: repeat(4, 1fr); }
+            .systems-grid { grid-template-columns: repeat(2, 1fr); }
+            .req-container { flex-direction: row; }
+            .status-list { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .status-item { flex: 1; min-width: 220px; }
+            .steps-container { grid-template-columns: repeat(2, 1fr); display: grid; gap: 20px; }
+            .footer-content { grid-template-columns: 2fr 1fr 1fr; }
+            .footer-bottom { flex-direction: row; justify-content: space-between; align-items: center; }
+        }
+        
+        @media (min-width: 1024px) {
+            section { padding: 100px 5%; }
+            .section-title { font-size: 2.5rem; }
+            .hero h1 { font-size: 5.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <header id="header">
+        <nav class="nav-container">
+            <a href="#inicio" class="logo">
+                <img src="140587.png" alt="Logo MasterX" onerror="this.src='https://via.placeholder.com/50x50/000000/FFFFFF?text=MX'">
+                MASTER<span>X</span>
+            </a>
+            
+            <i class="ph ph-list menu-toggle" id="menuBtn"></i>
+
+            <div class="nav-links" id="navLinks">
+                <i class="ph ph-x close-menu" id="closeBtn"></i>
+                <a href="#sobre"><i class="ph-bold ph-info"></i> Projeto</a>
+                <a href="#carreiras"><i class="ph-bold ph-briefcase"></i> Carreiras</a>
+                <a href="#sistemas"><i class="ph-bold ph-cpu"></i> Sistemas</a>
+                <a href="#recrutamento"><i class="ph-bold ph-users"></i> Recrutamento</a>
+                <a href="#faq"><i class="ph-bold ph-question"></i> FAQ</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero" id="inicio">
+            <div class="hero-img-container reveal">
+                <img src="140587.png" alt="MasterX Roleplay" onerror="this.style.display='none'">
+            </div>
+            
+            <div class="badge reveal">
+                <i class="ph-fill ph-warning"></i> Alpha Privado - Em Desenvolvimento
+            </div>
+            
+            <h1 class="reveal">MASTER<span>X</span> ROLEPLAY</h1>
+            <h2 class="reveal">O próximo nível do Roleplay Mobile. Imersão, economia real e sistemas exclusivos na palma da sua mão.</h2>
+            
+            <div class="btn-group reveal">
+                <a href="#recrutamento" class="btn btn-primary">
+                    <i class="ph-bold ph-discord-logo"></i> Entrar na Comunidade
+                </a>
+                <a href="#sistemas" class="btn btn-secondary">
+                    <i class="ph-bold ph-play-circle"></i> Conhecer o Jogo
+                </a>
+            </div>
+        </section>
+
+        <section id="sobre" class="reveal bg-alternate">
+            <div class="section-title">
+                <i class="ph-fill ph-game-controller"></i>
+                <h2>Uma Nova Cidade</h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-box">
+                    <p>O <strong>MASTERX Roleplay</strong> não é apenas mais um servidor. É um projeto construído do zero para dispositivos mobile, focado em acabar com as limitações de otimização e entregar um RP justo e organizado.</p>
+                    <p>Esqueça os "cidade padrão". Aqui, a economia é levada a sério, o código é limpo para evitar travamentos, e a administração trabalha para quem realmente quer criar histórias incríveis.</p>
+                    <p>O poder da cidade estará nas mãos das facções, das corporações e dos trabalhadores. Qual será o seu legado?</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="carreiras" class="reveal">
+            <div class="section-title">
+                <i class="ph-fill ph-crosshair"></i>
+                <h2>Escolha Seu Caminho</h2>
+            </div>
+            <div class="careers-grid">
+                <div class="career-card" style="border-bottom: 3px solid #3498db;">
+                    <i class="ph-fill ph-shield-star" style="color: #3498db;"></i>
+                    <h3>Polícia</h3>
+                    <p>Mantenha a ordem, patrulhe as ruas e combata o crime organizado com viaturas e táticas exclusivas.</p>
+                </div>
+                <div class="career-card" style="border-bottom: 3px solid #e74c3c;">
+                    <i class="ph-fill ph-heartbeat" style="color: #e74c3c;"></i>
+                    <h3>Hospital</h3>
+                    <p>Salve vidas. Sistema médico avançado de reanimação, cirurgias e resgate aéreo.</p>
+                </div>
+                <div class="career-card" style="border-bottom: 3px solid #f1c40f;">
+                    <i class="ph-fill ph-wrench" style="color: #f1c40f;"></i>
+                    <h3>Mecânica</h3>
+                    <p>Domine o asfalto. Tunagem completa, pintura customizada e reboque de veículos pela cidade.</p>
+                </div>
+                <div class="career-card" style="border-bottom: 3px solid var(--accent);">
+                    <i class="ph-fill ph-skull" style="color: var(--accent);"></i>
+                    <h3>Submundo</h3>
+                    <p>Tráfico, desmanche, roubos a banco e facções organizadas. O crime compensa? Depende de você.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sistemas" class="reveal bg-alternate">
+            <div class="section-title">
+                <i class="ph-fill ph-cpu"></i>
+                <h2>Sistemas Exclusivos</h2>
+            </div>
+            <div class="systems-grid">
+                <div class="system-card">
+                    <div class="system-icon"><i class="ph-fill ph-microphone-stage"></i></div>
+                    <div class="system-info">
+                        <h3>VoIP 3D e Rádio</h3>
+                        <p>Comunicação por voz nativa baseada em proximidade espacial e sistema de rádio por frequências para corporações.</p>
+                    </div>
+                </div>
+                <div class="system-card">
+                    <div class="system-icon"><i class="ph-fill ph-backpack"></i></div>
+                    <div class="system-info">
+                        <h3>Inventário Visual</h3>
+                        <p>Interface arrastar e soltar (Drag & Drop) perfeitamente adaptada para o toque no celular. Gerencie armas, itens e roupas.</p>
+                    </div>
+                </div>
+                <div class="system-card">
+                    <div class="system-icon"><i class="ph-fill ph-car-profile"></i></div>
+                    <div class="system-info">
+                        <h3>Física e Condução</h3>
+                        <p>Controles de veículos ajustados, consumo de combustível real e danos mecânicos precisos em colisões.</p>
+                    </div>
+                </div>
+                <div class="system-card">
+                    <div class="system-icon"><i class="ph-fill ph-device-mobile-camera"></i></div>
+                    <div class="system-info">
+                        <h3>Celular In-Game</h3>
+                        <p>Smartphone funcional no jogo: faça ligações, envie mensagens, use o banco, chame Uber e acesse a Deep Web.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="diferenciais" class="reveal">
+            <div class="section-title">
+                <i class="ph-fill ph-star"></i>
+                <h2>Por que jogar aqui?</h2>
+            </div>
+            <div class="diff-grid">
+                <div class="diff-card">
+                    <i class="ph-fill ph-rocket-launch"></i>
+                    <h3>Otimização Extrema</h3>
+                    <p>Texturas e scripts otimizados para rodar liso mesmo em celulares mais modestos, sem perder a qualidade visual.</p>
+                </div>
+                <div class="diff-card">
+                    <i class="ph-fill ph-gavel"></i>
+                    <h3>Staff Madura</h3>
+                    <p>Nossa equipe não brinca em serviço. Administração imparcial, punições severas para anti-RP e suporte ágil.</p>
+                </div>
+                <div class="diff-card">
+                    <i class="ph-fill ph-money"></i>
+                    <h3>Economia Hard</h3>
+                    <p>Nada de dinheiro fácil. Tudo o que você conquistar terá valor real. Esforço e inteligência ditam o seu sucesso.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="requisitos" class="reveal bg-alternate">
+            <div class="section-title">
+                <i class="ph-fill ph-list-checks"></i>
+                <h2>Requisitos do Jogo</h2>
+            </div>
+            <div class="req-container">
+                <div class="req-box">
+                    <div class="req-title">
+                        <i class="ph-fill ph-battery-warning"></i> Requisitos Mínimos
+                    </div>
+                    <ul class="req-list">
+                        <li><span>Sistema</span> <strong>Android 8.0+</strong></li>
+                        <li><span>Memória RAM</span> <strong>3GB RAM</strong></li>
+                        <li><span>Armazenamento</span> <strong>4GB Livres</strong></li>
+                        <li><span>Conexão</span> <strong>4G / Wi-Fi Estável</strong></li>
+                    </ul>
+                </div>
+                <div class="req-box recommended">
+                    <div class="req-title">
+                        <i class="ph-fill ph-battery-charging"></i> Recomendado
+                    </div>
+                    <ul class="req-list">
+                        <li><span>Sistema</span> <strong>Android 11+ / iOS 14+</strong></li>
+                        <li><span>Memória RAM</span> <strong>6GB RAM ou mais</strong></li>
+                        <li><span>Armazenamento</span> <strong>6GB Livres</strong></li>
+                        <li><span>Conexão</span> <strong>Wi-Fi 5GHz</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="recrutamento" class="reveal">
+            <div class="section-title">
+                <i class="ph-fill ph-users-three"></i>
+                <h2>Recrutamento Aberto</h2>
+            </div>
+            
+            <div class="status-box">
+                <h3 style="margin-bottom: 10px; font-family: 'Oswald', sans-serif; font-size: 1.5rem;">STATUS: ALPHA FECHADO</h3>
+                <p style="color: var(--text-muted);">Estamos nos estágios iniciais de programação e mapeamento. Se você quer ver seu nome na lista de fundadores deste projeto, a hora é agora.</p>
+                <div class="status-list">
+                    <div class="status-item"><i class="ph-bold ph-code-block"></i> Desenvolvedores</div>
+                    <div class="status-item"><i class="ph-bold ph-paint-brush"></i> Designers / UI</div>
+                    <div class="status-item"><i class="ph-bold ph-shield-check"></i> Staff / Moderação</div>
+                    <div class="status-item"><i class="ph-bold ph-megaphone"></i> Criadores de Conteúdo</div>
+                </div>
+                <a href="#" class="btn btn-primary" style="max-width: 300px; margin: 0 auto;">
+                    <i class="ph-fill ph-discord-logo"></i> Aplicar no Discord
+                </a>
+            </div>
+        </section>
+
+        <section id="faq" class="reveal bg-alternate">
+            <div class="section-title">
+                <i class="ph-fill ph-question"></i>
+                <h2>Dúvidas Frequentes</h2>
+            </div>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>O jogo é de graça? Vai ter "Pay to Win"?</span>
+                        <i class="ph-bold ph-caret-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p><br>O jogo será 100% gratuito para entrar. Teremos VIPs estéticos e de facilitação (como carros exclusivos e prioridade na fila), mas <strong>NÃO</strong> venderemos vantagens competitivas, armas ou poderes que quebrem a economia.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Quando o servidor vai inaugurar?</span>
+                        <i class="ph-bold ph-caret-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p><br>Ainda não temos uma data cravada. Estamos trabalhando para entregar uma versão Alpha nas próximas semanas para os primeiros testadores selecionados no Discord.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Precisa de Whitelist (Teste) para jogar?</span>
+                        <i class="ph-bold ph-caret-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p><br>Sim. Para garantir a qualidade do Roleplay, todos os jogadores precisarão passar por uma rápida entrevista ou teste escrito no nosso servidor do Discord antes de liberar o acesso à cidade.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>O jogo vai rodar no iOS (iPhone)?</span>
+                        <i class="ph-bold ph-caret-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p><br>Inicialmente, o foco primário do desenvolvimento é para dispositivos Android (APK). A versão para iOS será lançada em uma fase posterior através das plataformas compatíveis.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-final reveal">
+            <p>O IMPÉRIO ESTÁ SENDO CONSTRUÍDO.<br>VOCÊ VAI FICAR DE FORA?</p>
+            <a href="#" class="btn btn-primary">
+                <i class="ph-fill ph-discord-logo"></i> ACESSAR SERVIDOR OFICIAL
+            </a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="logo">
+                    <img src="140587.png" alt="Logo" onerror="this.style.display='none'">
+                    MASTER<span>X</span>
+                </div>
+                <p>O servidor mobile mais imersivo, focado em roleplay sério, economia realista e comunidade de respeito.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Discord"><i class="ph-fill ph-discord-logo"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="ph-fill ph-youtube-logo"></i></a>
+                    <a href="#" aria-label="TikTok"><i class="ph-fill ph-tiktok-logo"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Links Úteis</h4>
+                <ul>
+                    <li><a href="#sobre">Conhecer o Projeto</a></li>
+                    <li><a href="#sistemas">Sistemas Exclusivos</a></li>
+                    <li><a href="#carreiras">Guia de Carreiras</a></li>
+                    <li><a href="#requisitos">Requisitos para Jogar</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Suporte</h4>
+                <ul>
+                    <li><a href="#faq">Central de Dúvidas</a></li>
+                    <li><a href="#recrutamento">Trabalhe Conosco</a></li>
+                    <li><a href="regras.html">Regras da Cidade</a></li>
+                    <li><a href="termos.html">Termos de Uso</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <span>MASTERX ROLEPLAY &copy; 2026. Todos os direitos reservados.</span>
+            <span>Desenvolvido com <i class="ph-fill ph-heart" style="color: var(--accent);"></i> pela Equipe MX.</span>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. MENU MOBILE
+            const menuBtn = document.getElementById('menuBtn');
+            const closeBtn = document.getElementById('closeBtn');
+            const navLinks = document.getElementById('navLinks');
+            const overlay = document.getElementById('overlay');
+            const menuItems = navLinks.querySelectorAll('a');
+
+            function toggleMenu() {
+                navLinks.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : 'auto';
+            }
+
+            menuBtn.addEventListener('click', toggleMenu);
+            closeBtn.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    if(navLinks.classList.contains('active')) toggleMenu();
+                });
+            });
+
+            // 2. HEADER SCROLL EFFECT
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.style.padding = "10px 0";
+                    header.style.boxShadow = "0 5px 30px rgba(0, 0, 0, 0.9)";
+                    header.style.background = "rgba(0,0,0,0.98)";
+                    header.style.borderBottom = "1px solid var(--accent)";
+                } else {
+                    header.style.padding = "0";
+                    header.style.boxShadow = "none";
+                    header.style.background = "rgba(3,3,3,0.85)";
+                    header.style.borderBottom = "1px solid var(--border-color)";
+                }
+            }, { passive: true });
+
+            // 3. FAQ ACCORDION
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+                    
+                    faqItems.forEach(faq => {
+                        faq.classList.remove('active');
+                        faq.querySelector('.faq-answer').style.maxHeight = null;
+                    });
+
+                    if (!isActive) {
+                        item.classList.add('active');
+                        const answer = item.querySelector('.faq-answer');
+                        answer.style.maxHeight = answer.scrollHeight + "px";
+                    }
+                });
+            });
+
+            // 4. SCROLL REVEAL ANIMATION
+            function reveal() {
+                const reveals = document.querySelectorAll('.reveal');
+                const windowHeight = window.innerHeight;
+                const elementVisible = 100;
+
+                reveals.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - elementVisible) {
+                        element.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', reveal, { passive: true });
+            reveal(); // Ativa no carregamento
+        });
+    </script>
+</body>
+</html>
