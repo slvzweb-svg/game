@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Personalizar Premium | ALL SPORTS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= VARIÁVEIS ================= */
+        :root {
+            --blue: #0A2463;
+            --blue-light: #24418B;
+            --orange: #FF6B35;
+            --orange-hover: #E85D2A;
+            --bg-light: #F8F9FA;
+            --text-dark: #1E1E24;
+            --text-gray: #6C757D;
+            --white: #FFFFFF;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-md: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        /* ================= RESET ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-top: 60px;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ================= HEADER ================= */
+        header {
+            position: fixed;
+            top: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .header-back { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--blue); }
+        .header-back svg { width: 24px; height: 24px; fill: var(--blue); }
+        .logo-text { font-weight: 800; font-size: 1.1rem; color: var(--blue); }
+
+        /* ================= PREVIEW DA CAMISA ================= */
+        .preview-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            background: radial-gradient(circle at center, #ffffff 0%, #e9ecef 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .jersey-container {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            animation: float 4s ease-in-out infinite;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .jersey-svg {
+            width: 100%;
+            height: auto;
+            transition: fill 0.4s ease;
+        }
+
+        /* Textos sobrepostos na camisa */
+        .jersey-texts {
+            position: absolute;
+            top: 25%;
+            width: 100%;
+            text-align: center;
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+
+        .preview-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            min-height: 35px;
+            transform: perspective(400px) rotateX(-5deg); 
+            transition: font-family 0.3s ease;
+        }
+
+        .preview-number {
+            font-size: 6rem;
+            font-weight: 900;
+            line-height: 1;
+            min-height: 120px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+            transition: font-family 0.3s ease;
+        }
+
+        /* ================= PAINEL DE CONTROLES ================= */
+        .controls-section {
+            background: var(--white);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            padding: 30px 20px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
+            z-index: 10;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+            margin-top: 15px;
+        }
+
+        /* Seletores de Tamanho */
+        .size-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .size-btn {
+            flex: 1;
+            padding: 10px 0;
+            text-align: center;
+            background: var(--bg-light);
+            border: 2px solid #E9ECEF;
+            border-radius: var(--radius-md);
+            font-weight: 800;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .size-btn.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: var(--white);
+            transform: scale(1.05);
+        }
+
+        /* Seleção de Cores (Camisa e Texto) */
+        .color-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none;
+        }
+        .color-selector::-webkit-scrollbar { display: none; }
+        
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid var(--white);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .color-btn.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 2px var(--blue), 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* Seletor de Fonte */
+        .font-selector {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid #E9ECEF;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            background: var(--bg-light);
+            outline: none;
+            margin-bottom: 15px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+        }
+
+        /* Formulário de Inputs */
+        .input-group { margin-bottom: 15px; }
+        .input-group input {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid #E9ECEF;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            outline: none;
+            transition: border-color 0.3s;
+            background: var(--bg-light);
+            text-transform: uppercase;
+        }
+        .input-group input:focus { border-color: var(--orange); background: var(--white); }
+
+        /* Botão Finalizar */
+        .btn-finish {
+            width: 100%;
+            background: var(--orange);
+            color: var(--white);
+            padding: 18px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-finish:active { transform: scale(0.95); }
+
+        /* ================= POPUPS E PAINÉIS ================= */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .overlay.active { opacity: 1; pointer-events: all; }
+
+        .popup-error {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -40%);
+            background: var(--white);
+            padding: 25px;
+            border-radius: var(--radius-lg);
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+            z-index: 1002;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+        .popup-error.active { opacity: 1; transform: translate(-50%, -50%); pointer-events: all; }
+        .popup-error svg { width: 50px; height: 50px; fill: #DC3545; margin-bottom: 10px; }
+        .popup-error h3 { color: var(--text-dark); margin-bottom: 5px; font-weight: 800; }
+        .popup-error p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 20px; }
+        .popup-error button {
+            background: var(--blue); border: none; padding: 12px 25px;
+            border-radius: 20px; font-weight: 600; color: var(--white); cursor: pointer; width: 100%;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: -100%; left: 0; width: 100%;
+            background: var(--white);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            padding: 30px 20px;
+            z-index: 1002;
+            transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+        }
+        .bottom-sheet.active { bottom: 0; }
+        
+        .success-icon {
+            width: 60px; height: 60px;
+            background: #28A745; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        .success-icon svg { width: 30px; height: 30px; fill: var(--white); }
+        .bottom-sheet h3 { text-align: center; color: var(--text-dark); font-weight: 800; margin-bottom: 5px; }
+        .bottom-sheet p { text-align: center; color: var(--text-gray); font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .summary-card {
+            background: var(--bg-light); padding: 15px; border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; border-bottom: 1px solid #E9ECEF; padding-bottom: 10px;
+        }
+        .summary-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .summary-label { font-size: 0.8rem; color: var(--text-gray); font-weight: 600; }
+        .summary-value { font-size: 0.95rem; font-weight: 800; color: var(--blue); text-transform: uppercase; }
+        
+        .btn-cart {
+            width: 100%; background: var(--blue); color: var(--white);
+            padding: 18px; border: none; border-radius: 30px; font-weight: 800; font-size: 1.1rem; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="header-back">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Voltar
+        </a>
+        <div class="logo-text">ALL SPORTS</div>
+    </header>
+
+    <main class="preview-section">
+        <div class="jersey-container">
+            <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" class="jersey-svg">
+                <defs>
+                    <pattern id="dryfit" width="4" height="4" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1" fill="rgba(0,0,0,0.06)" />
+                    </pattern>
+                </defs>
+                
+                <path id="jersey-path" fill="#0A2463" d="M 60 10 C 80 20 120 20 140 10 L 195 40 Q 205 45 200 55 L 180 85 Q 175 90 165 85 L 155 75 L 155 220 Q 155 230 145 230 L 55 230 Q 45 230 45 220 L 45 75 L 35 85 Q 25 90 20 85 L 0 55 Q -5 45 5 40 Z"/>
+                
+                <path fill="url(#dryfit)" d="M 60 10 C 80 20 120 20 140 10 L 195 40 Q 205 45 200 55 L 180 85 Q 175 90 165 85 L 155 75 L 155 220 Q 155 230 145 230 L 55 230 Q 45 230 45 220 L 45 75 L 35 85 Q 25 90 20 85 L 0 55 Q -5 45 5 40 Z"/>
+                
+                <path fill="rgba(0,0,0,0.15)" d="M 60 10 C 80 20 120 20 140 10 L 140 15 C 120 25 80 25 60 15 Z"/>
+                <path fill="rgba(255,255,255,0.1)" d="M 45 75 L 55 230 L 45 230 Z"/>
+                <path fill="rgba(0,0,0,0.08)" d="M 155 75 L 145 230 L 155 230 Z"/>
+                
+                <circle cx="100" cy="15" r="30" fill="rgba(0,0,0,0.1)" clip-path="url(#neck)"/>
+            </svg>
+            
+            <div class="jersey-texts" id="jersey-texts">
+                <div class="preview-name" id="preview-name">SEU NOME</div>
+                <div class="preview-number" id="preview-number">10</div>
+            </div>
+        </div>
+    </main>
+
+    <section class="controls-section">
+        <h2 class="section-title">Monte seu Manto</h2>
+
+        <label class="control-label">Tamanho da Camisa</label>
+        <div class="size-selector" id="size-selector">
+            <div class="size-btn" onclick="selectSize(this, 'P')">P</div>
+            <div class="size-btn" onclick="selectSize(this, 'M')">M</div>
+            <div class="size-btn active" onclick="selectSize(this, 'G')">G</div>
+            <div class="size-btn" onclick="selectSize(this, 'GG')">GG</div>
+            <div class="size-btn" onclick="selectSize(this, 'XG')">XG</div>
+        </div>
+        
+        <label class="control-label">Cor da Camisa</label>
+        <div class="color-selector" id="shirt-colors">
+            <button class="color-btn active" style="background-color: #0A2463;" onclick="changeShirtColor(this, '#0A2463', 'Azul Marinho')"></button>
+            <button class="color-btn" style="background-color: #1E1E24;" onclick="changeShirtColor(this, '#1E1E24', 'Preto')"></button>
+            <button class="color-btn" style="background-color: #FF6B35;" onclick="changeShirtColor(this, '#FF6B35', 'Laranja')"></button>
+            <button class="color-btn" style="background-color: #28A745;" onclick="changeShirtColor(this, '#28A745', 'Verde')"></button>
+            <button class="color-btn" style="background-color: #DC3545;" onclick="changeShirtColor(this, '#DC3545', 'Vermelho')"></button>
+            <button class="color-btn" style="background-color: #FFFFFF;" onclick="changeShirtColor(this, '#FFFFFF', 'Branco')"></button>
+        </div>
+
+        <label class="control-label">Cor da Letra e Número</label>
+        <div class="color-selector" id="text-colors">
+            <button class="color-btn active" style="background-color: #FFFFFF;" onclick="changeTextColor(this, '#FFFFFF', 'Branco')"></button>
+            <button class="color-btn" style="background-color: #1E1E24;" onclick="changeTextColor(this, '#1E1E24', 'Preto')"></button>
+            <button class="color-btn" style="background-color: #FFD700;" onclick="changeTextColor(this, '#FFD700', 'Dourado')"></button>
+            <button class="color-btn" style="background-color: #0A2463;" onclick="changeTextColor(this, '#0A2463', 'Azul')"></button>
+        </div>
+
+        <label class="control-label">Estilo da Fonte</label>
+        <select class="font-selector" id="font-selector" onchange="changeFont()">
+            <option value="'Poppins', sans-serif">Moderno (Poppins)</option>
+            <option value="'Bebas Neue', sans-serif">Clássico (Bebas Neue)</option>
+            <option value="'Oswald', sans-serif">Impacto (Oswald)</option>
+            <option value="'Teko', sans-serif">Esportivo (Teko)</option>
+        </select>
+
+        <div class="input-group">
+            <label class="control-label" for="input-name">Nome nas Costas (Máx. 12 letras)</label>
+            <input type="text" id="input-name" placeholder="Ex: SILVA" maxlength="12" autocomplete="off" oninput="updateTexts()">
+        </div>
+
+        <div class="input-group">
+            <label class="control-label" for="input-number">Número (Máx. 2 dígitos)</label>
+            <input type="number" id="input-number" placeholder="Ex: 10" max="99" min="0" oninput="updateTexts()">
+        </div>
+
+        <button class="btn-finish" onclick="validateAndSubmit()">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            Finalizar Personalização
+        </button>
+    </section>
+
+    <div class="overlay" id="overlay" onclick="closePopups()"></div>
+
+    <div class="popup-error" id="popup-error">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <h3>Faltou algo!</h3>
+        <p id="error-message">Por favor, preencha o <b>Nome</b> e o <b>Número</b> para continuar.</p>
+        <button onclick="closePopups()">Entendi</button>
+    </div>
+
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        <h3>Manto Criado!</h3>
+        <p>Confira os detalhes da sua personalização.</p>
+        
+        <div class="summary-card">
+            <div class="summary-row">
+                <span class="summary-label">Tamanho</span>
+                <span class="summary-value" id="sum-size">G</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Cor da Camisa</span>
+                <span class="summary-value" id="sum-shirt">Azul Marinho</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Cor do Texto</span>
+                <span class="summary-value" id="sum-text">Branco</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Nome e Número</span>
+                <span class="summary-value"><span id="sum-name">SILVA</span> - <span id="sum-number">10</span></span>
+            </div>
+        </div>
+
+        <button class="btn-cart" onclick="window.location.href='index.html'">Adicionar ao Carrinho</button>
+    </div>
+
+    <script>
+        // ================= VARIÁVEIS DE ESTADO =================
+        let currentSize = 'G';
+        let currentShirtColorName = 'Azul Marinho';
+        let currentTextColorName = 'Branco';
+
+        // Elementos DOM
+        const jerseyPath = document.getElementById('jersey-path');
+        const jerseyTexts = document.getElementById('jersey-texts');
+        const previewName = document.getElementById('preview-name');
+        const previewNumber = document.getElementById('preview-number');
+        const inputName = document.getElementById('input-name');
+        const inputNumber = document.getElementById('input-number');
+        const fontSelector = document.getElementById('font-selector');
+        
+        // Elementos UI Popups
+        const overlay = document.getElementById('overlay');
+        const popupError = document.getElementById('popup-error');
+        const errorMessage = document.getElementById('error-message');
+        const bottomSheet = document.getElementById('bottom-sheet');
+
+        // Elementos Resumo
+        const sumSize = document.getElementById('sum-size');
+        const sumShirt = document.getElementById('sum-shirt');
+        const sumText = document.getElementById('sum-text');
+        const sumName = document.getElementById('sum-name');
+        const sumNumber = document.getElementById('sum-number');
+
+        // ================= FUNÇÕES DE INTERAÇÃO =================
+
+        // Selecionar Tamanho
+        function selectSize(button, size) {
+            document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentSize = size;
+        }
+
+        // Mudar Cor da Camisa
+        function changeShirtColor(button, hexColor, colorName) {
+            document.querySelectorAll('#shirt-colors .color-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            jerseyPath.setAttribute('fill', hexColor);
+            currentShirtColorName = colorName;
+
+            // Lógica inteligente: se a camisa for branca e o texto for branco, muda o texto pra preto
+            if (hexColor === '#FFFFFF' && jerseyTexts.style.color === 'rgb(255, 255, 255)' || jerseyTexts.style.color === '') {
+                // Força o clique no botão de cor preta do texto
+                const blackTextBtn = document.querySelectorAll('#text-colors .color-btn');
+                changeTextColor(blackTextBtn, '#1E1E24', 'Preto');
+            }
+        }
+
+        // Mudar Cor do Texto
+        function changeTextColor(button, hexColor, colorName) {
+            document.querySelectorAll('#text-colors .color-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            jerseyTexts.style.color = hexColor;
+            currentTextColorName = colorName;
+        }
+
+        // Mudar Fonte
+        function changeFont() {
+            const selectedFont = fontSelector.value;
+            previewName.style.fontFamily = selectedFont;
+            previewNumber.style.fontFamily = selectedFont;
+        }
+
+        // Atualizar Nome e Número no Preview
+        function updateTexts() {
+            let name = inputName.value.toUpperCase();
+            let number = inputNumber.value;
+            
+            if (number.length > 2) {
+                number = number.slice(0, 2);
+                inputNumber.value = number;
+            }
+
+            previewName.innerText = name.trim() === '' ? 'SEU NOME' : name;
+            previewNumber.innerText = number.trim() === '' ? '10' : number;
+        }
+
+        // Validação e Abertura do Resumo Final
+        function validateAndSubmit() {
+            const nameVal = inputName.value.trim();
+            const numVal = inputNumber.value.trim();
+
+            if (nameVal === '' || numVal === '') {
+                errorMessage.innerHTML = "Por favor, preencha o <b>Nome</b> e o <b>Número</b> para continuar.";
+                overlay.classList.add('active');
+                popupError.classList.add('active');
+                return;
+            }
+
+            // Preenche o Bottom Sheet com os dados selecionados
+            sumSize.innerText = currentSize;
+            sumShirt.innerText = currentShirtColorName;
+            sumText.innerText = currentTextColorName;
+            sumName.innerText = nameVal.toUpperCase();
+            sumNumber.innerText = numVal;
+            
+            // Abre o Bottom Sheet
+            overlay.classList.add('active');
+            bottomSheet.classList.add('active');
+        }
+
+        // Fechar Popups e Overlays
+        function closePopups() {
+            overlay.classList.remove('active');
+            popupError.classList.remove('active');
+            bottomSheet.classList.remove('active');
+        }
+    </script>
+</body>
+</html>

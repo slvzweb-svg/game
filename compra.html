@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finalizar Compra | ALL SPORTS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --blue: #0A2463;
+            --blue-light: #24418B;
+            --orange: #FF6B35;
+            --orange-hover: #E85D2A;
+            --bg-light: #F8F9FA;
+            --text-dark: #1E1E24;
+            --text-gray: #6C757D;
+            --white: #FFFFFF;
+            --error: #DC3545;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-top: 70px;
+            padding-bottom: 90px;
+        }
+
+        header {
+            position: fixed;
+            top: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-text { font-weight: 800; font-size: 1.2rem; color: var(--blue); text-decoration: none;}
+        .menu-btn svg { width: 28px; height: 28px; fill: var(--blue); }
+
+        .container { padding: 20px; }
+
+        /* ================= RESUMO DO PRODUTO ================= */
+        .product-summary {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
+            align-items: center;
+        }
+        .product-thumb {
+            width: 80px;
+            height: 80px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .product-details { flex-grow: 1; }
+        .product-details h2 { font-size: 1rem; color: var(--blue); margin-bottom: 5px; }
+        .product-details p { font-size: 1.1rem; font-weight: 800; color: var(--orange); margin-bottom: 5px; }
+
+        /* ================= FORMULÁRIO DE CHECKOUT ================= */
+        .checkout-form {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 25px 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1.5px solid #eee;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
+            background-color: var(--white);
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--orange); }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* ================= MÉTODOS DE PAGAMENTO & PAINÉIS ================= */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .pay-option {
+            border: 1.5px solid #eee;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .pay-option.active {
+            border-color: var(--orange);
+            background: rgba(255, 107, 53, 0.05);
+        }
+        .pay-option svg { width: 24px; height: 24px; fill: var(--text-gray); margin-bottom: 5px; }
+        .pay-option.active svg { fill: var(--orange); }
+        .pay-option span { display: block; font-size: 0.75rem; font-weight: 600; }
+
+        /* PAINÉIS DE PAGAMENTO OCULTOS/ATIVOS */
+        .payment-panel {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #eee;
+            animation: slideDown 0.3s ease forwards;
+        }
+        .payment-panel.active { display: block; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pix-container {
+            text-align: center;
+            padding: 10px;
+        }
+        .qr-placeholder {
+            width: 150px; height: 150px;
+            background: #f1f1f1;
+            border: 2px dashed #ccc;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .qr-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 5px;
+        }
+        .pix-code {
+            background: #eee;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+        .btn-copy {
+            background: var(--blue-light);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* ================= BOTÃO FINALIZAR ================= */
+        .footer-action {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: var(--white);
+            padding: 15px 20px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1001;
+        }
+        .total-price { display: flex; flex-direction: column; }
+        .total-label { font-size: 0.7rem; color: var(--text-gray); font-weight: 600; }
+        .total-value { font-size: 1.2rem; font-weight: 800; color: var(--blue); }
+        
+        .btn-confirm {
+            background: var(--orange);
+            color: var(--white);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 800;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
+            cursor: pointer;
+        }
+
+        /* ================= MODAIS (Popups) ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 36, 99, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 0.3s;
+        }
+        .modal-overlay.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Icone de Sucesso */
+        .modal-icon {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .icon-success { background: var(--orange); }
+        .icon-error { background: var(--error); }
+
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo-text">ALL SPORTS</a>
+        <a href="menu.html" class="menu-btn">
+            <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </a>
+    </header>
+
+    <div class="container">
+        <h1 class="form-section-title" style="font-size: 1.4rem;">Finalizar Pedido</h1>
+
+        <div class="product-summary">
+            <div class="product-thumb">
+                <img src="" alt="Produto" id="prod-img">
+            </div>
+            <div class="product-details">
+                <h2 id="prod-name">Carregando...</h2>
+                <p id="prod-price">R$ 0,00</p>
+            </div>
+        </div>
+
+        <form class="checkout-form" id="purchaseForm">
+            <div class="form-section-title">
+                <svg width="20" height="20" fill="var(--orange)" viewBox="0 0 24 24"><path d="M21 9h-4.99L13 2.58c-.19-.24-.55-.24-.74 0L9.99 9H3c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h18c.55 0 1-.45 1-1V10c0-.55-.45-1-1-1zm-9-4.85L13.85 9h-3.7L12 4.15zM5 19v-8h14v8H5z"/></svg>
+                Opções do Item
+            </div>
+            
+            <div class="form-row" style="margin-bottom: 25px;">
+                <div class="form-group">
+                    <label>Tamanho</label>
+                    <select id="tamanho-select" required>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade</label>
+                    <input type="number" id="quantidade" value="1" min="1" required>
+                </div>
+            </div>
+
+            <div class="form-section-title">
+                <svg width="20" height="20" fill="var(--orange)" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                Dados de Entrega
+            </div>
+
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="nome" placeholder="Como no seu documento" required>
+            </div>
+
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="email" placeholder="Para receber o rastreio" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>CEP</label>
+                    <input type="text" id="cep" placeholder="00000-000" required>
+                </div>
+                <div class="form-group">
+                    <label>Número</label>
+                    <input type="text" id="numero" placeholder="123" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Endereço</label>
+                <input type="text" id="endereco" placeholder="Rua, Avenida..." required>
+            </div>
+
+            <div class="form-section-title" style="margin-top: 30px;">
+                <svg width="20" height="20" fill="var(--orange)" viewBox="0 0 24 24"><path d="M21 7.28V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-2.28c.59-.35 1-.98 1-1.72V9c0-.74-.41-1.37-1-1.72zM20 9v6h-7V9h7zM5 19V5h14v2h-6c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6v2H5z"/></svg>
+                Pagamento
+            </div>
+
+            <div class="payment-methods">
+                <div class="pay-option active" onclick="selectPay(this, 'cartao')">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                    <span>Cartão</span>
+                </div>
+                <div class="pay-option" onclick="selectPay(this, 'pix')">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    <span>Pix</span>
+                </div>
+            </div>
+
+            <div id="panel-cartao" class="payment-panel active">
+                <div class="form-group">
+                    <label>Número do Cartão</label>
+                    <input type="text" class="card-input" placeholder="0000 0000 0000 0000" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Validade</label>
+                        <input type="text" class="card-input" placeholder="MM/AA" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" class="card-input" placeholder="123" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nome no Cartão</label>
+                    <input type="text" class="card-input" placeholder="NOME IMPRESSO" required>
+                </div>
+            </div>
+
+            <div id="panel-pix" class="payment-panel">
+                <div class="pix-container">
+                    <p style="font-size: 0.8rem; color: var(--text-gray); margin-bottom: 10px;">Escaneie o QR Code com o app do seu banco:</p>
+                    <div class="qr-placeholder">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020126580014br.gov.bcb.pix.exemplo.allsports" alt="QR Code Pix">
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-gray); margin-bottom: 5px;">Ou copie o código (Pix Copia e Cola):</p>
+                    <div class="pix-code" id="codigoPix">00020126580014br.gov.bcb.pix.exemplo.allsports520400005303986540510.005802BR5910ALL SPORTS6009SAO PAULO62070503***6304FE28</div>
+                    <button type="button" class="btn-copy" onclick="copiarPix()">Copiar Código Pix</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="footer-action">
+        <div class="total-price">
+            <span class="total-label">Total com frete</span>
+            <span class="total-value">R$ 0,00</span>
+        </div>
+        <button type="button" class="btn-confirm" onclick="finalizarCompra()">FINALIZAR</button>
+    </div>
+
+    <div id="error-modal" class="modal-overlay">
+        <div class="modal-icon icon-error">
+            <svg width="40" height="40" fill="white" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 10px;">Atenção!</h2>
+        <p style="opacity: 0.8; margin-bottom: 30px;">Por favor, preencha todos os campos obrigatórios corretamente.</p>
+        <button class="btn-confirm" onclick="fecharModal('error-modal')">Voltar e Corrigir</button>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-icon icon-success">
+            <svg width="40" height="40" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        <h2 style="font-size: 1.8rem; margin-bottom: 10px;">Pedido Realizado!</h2>
+        <p style="opacity: 0.8; margin-bottom: 30px;">Obrigado por escolher a ALL SPORTS.<br>Enviamos os detalhes para o seu e-mail.</p>
+        <a href="index.html" class="btn-confirm" style="text-decoration: none; display: inline-block;">Voltar para Home</a>
+    </div>
+
+    <script>
+        // Lógica de Alternância de Pagamento (Paineis)
+        function selectPay(element, tipo) {
+            // Atualiza botões
+            document.querySelectorAll('.pay-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+
+            // Oculta todos os painéis e remove o 'required' para não travar a validação do formulário
+            document.querySelectorAll('.payment-panel').forEach(panel => {
+                panel.classList.remove('active');
+                panel.querySelectorAll('.card-input').forEach(input => input.removeAttribute('required'));
+            });
+
+            // Mostra o painel selecionado
+            const activePanel = document.getElementById('panel-' + tipo);
+            activePanel.classList.add('active');
+
+            // Se for cartão, volta a exigir o preenchimento dos campos
+            if(tipo === 'cartao') {
+                activePanel.querySelectorAll('.card-input').forEach(input => input.setAttribute('required', 'true'));
+            }
+        }
+
+        // Função para Copiar o Código Pix
+        function copiarPix() {
+            const texto = document.getElementById('codigoPix').innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                alert("Código Pix copiado com sucesso!"); 
+            });
+        }
+
+        // Simulação de Finalização
+        function finalizarCompra() {
+            const form = document.getElementById('purchaseForm');
+            
+            if(form.checkValidity()) {
+                document.getElementById('success-modal').classList.add('active');
+            } else {
+                document.getElementById('error-modal').classList.add('active');
+                form.reportValidity();
+            }
+        }
+
+        // Função para fechar os modais
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Lógica Dinâmica de Produtos baseada no ID da URL
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id') || '1'; // Puxa o ID da URL, se não tiver, padrão é 1
+
+            // Banco de Dados simulado de Produtos
+            const produtos = {
+                '1': {
+                    nome: "Camisa Brasil 2026 Oficial",
+                    preco: "R$ 129,90",
+                    img: "https://poor-apricot-yrxzqhajml.edgeone.app/IMG_20260509_154934.png",
+                    tamanhos: ["P", "M", "G", "GG"]
+                },
+                '2': {
+                    nome: "Tênis Running ALL Pro",
+                    preco: "R$ 249,90",
+                    img: "https://yammering-salmon-rbugjuxqmc.edgeone.app/1778352588440.png", // Coloque o link real da imagem do tênis
+                    tamanhos: ["38", "39", "40", "41", "42", "43"]
+                },
+                '4': {
+                    nome: "Bola Campo Champions",
+                    preco: "R$ 119,90",
+                    img: "https://rubber-green-g2dceo46oh.edgeone.app/IMG_20260509_161608.png", // Coloque o link real da imagem da bola
+                    tamanhos: ["Único"]
+                },
+                '3': {
+                    nome: "Bermuda Treino Tech",
+                    preco: "R$ 89,90",
+                    img: "https://global-white-btksf55y1l.edgeone.app/IMG_20260509_160908.png", // Coloque o link real da imagem da calça
+                    tamanhos: ["P", "M", "G", "GG"]
+                }
+            };
+
+            // Pega o produto selecionado no objeto (ou o 1 como fallback se colocarem um ID que não existe)
+            const produtoAtivo = produtos[id] ? produtos[id] : produtos['1'];
+
+            // Atualiza Interface (Nome, Preço, Imagem e Valor Total)
+            document.getElementById('prod-name').innerText = produtoAtivo.nome;
+            document.getElementById('prod-price').innerText = produtoAtivo.preco;
+            document.querySelector('.total-value').innerText = produtoAtivo.preco;
+            document.getElementById('prod-img').src = produtoAtivo.img;
+
+            // Injeta as opções de tamanho dinamicamente
+            const selectTamanho = document.getElementById('tamanho-select');
+            selectTamanho.innerHTML = '<option value="" disabled selected>Escolha o tamanho...</option>';
+            
+            produtoAtivo.tamanhos.forEach(tamanho => {
+                selectTamanho.innerHTML += `<option value="${tamanho}">${tamanho}</option>`;
+            });
+        }
+    </script>
+</body>
+</html>

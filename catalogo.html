@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catálogo | ALL SPORTS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= VARIÁVEIS ================= */
+        :root {
+            --blue: #0A2463;
+            --blue-light: #24418B;
+            --orange: #FF6B35;
+            --orange-hover: #E85D2A;
+            --bg-light: #F8F9FA;
+            --text-dark: #1E1E24;
+            --text-gray: #6C757D;
+            --white: #FFFFFF;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* ================= RESET & BASE ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-top: 60px; /* Altura do header */
+            padding-bottom: 80px; /* Espaço para nav inferior */
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ================= HEADER ================= */
+        header {
+            position: fixed;
+            top: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-text { font-weight: 800; font-size: 1.2rem; color: var(--blue); }
+        .menu-btn svg { width: 28px; height: 28px; fill: var(--blue); }
+
+        /* ================= HERO CATÁLOGO (Imersivo) ================= */
+        .catalog-hero {
+            height: 200px;
+            background: linear-gradient(to right, rgba(10,36,99,0.8), rgba(10,36,99,0.4)), 
+                        url('https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 20px;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+        .catalog-hero h1 { font-size: 2.2rem; font-weight: 800; line-height: 1.1; }
+        .catalog-hero p { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
+
+        /* ================= FILTROS ================= */
+        .filters-container {
+            position: sticky;
+            top: 60px;
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 10px 0 10px 20px;
+            z-index: 999;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+        }
+        .filter-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-right: 20px;
+        }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        
+        .filter-btn {
+            background: var(--white);
+            border: 1px solid #ddd;
+            color: var(--text-gray);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn.active {
+            background: var(--blue);
+            color: var(--white);
+            border-color: var(--blue);
+            box-shadow: 0 4px 8px rgba(10, 36, 99, 0.2);
+        }
+
+        /* ================= GRID DE PRODUTOS ================= */
+        .catalog-grid {
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            min-height: 50vh; /* Mantém espaço enquanto carrega/filtra */
+        }
+        .product-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .product-img {
+            width: 100%;
+            height: 160px;
+            background: #e9ecef; 
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .product-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .product-card:hover .product-img img { transform: scale(1.05); }
+        
+        .product-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;}
+        .product-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); line-height: 1.2; }
+        .product-price { font-size: 1rem; font-weight: 800; color: var(--blue); margin-bottom: 10px; }
+        .btn-small {
+            background: var(--orange);
+            color: var(--white);
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn-small:active { background: var(--orange-hover); transform: scale(0.97); }
+
+        /* Mensagem de Categoria Vazia */
+        .empty-state {
+            grid-column: span 2;
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        /* ================= NAVBAR MOBILE ================= */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            height: 65px;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.08);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-gray);
+            font-size: 0.7rem;
+            font-weight: 600;
+            width: 25%;
+        }
+        .nav-item svg { width: 22px; height: 22px; fill: var(--text-gray); transition: fill 0.3s, transform 0.2s; }
+        .nav-item.active { color: var(--orange); }
+        .nav-item.active svg { fill: var(--orange); transform: translateY(-2px); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo-text">ALL SPORTS</a>
+        <a href="menu.html" class="menu-btn">
+            <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </a>
+    </header>
+
+    <div class="catalog-hero">
+        <h1>Nossa<br>Coleção</h1>
+        <p>Encontre os melhores itens para o seu esporte.</p>
+    </div>
+
+    <div class="filters-container">
+        <div class="filter-scroll" id="filter-bar">
+            </div>
+    </div>
+
+    <div class="catalog-grid" id="product-grid">
+        </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+        </a>
+        <a href="catalogo.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+            Catálogo
+        </a>
+        <a href="index.html#products" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+            Produtos
+        </a>
+        <a href="index.html#about" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            Sobre
+        </a>
+    </nav>
+
+    <script>
+        // Banco de Dados Simulado dos Produtos
+        // Adicione aqui todos os produtos da sua loja
+        const produtos = [
+            { id: 1, nome: "Camisa Brasil 2026 Oficial", preco: "R$ 129,90", img: "https://poor-apricot-yrxzqhajml.edgeone.app/IMG_20260509_154934.png", categoria: "futebol" },
+            { id: 2, nome: "Tênis Running ALL Pro", preco: "R$ 249,90", img: "https://yammering-salmon-rbugjuxqmc.edgeone.app/1778352588440.png", categoria: "fitness" },
+            { id: 3, nome: "Bermuda Treino Tech", preco: "R$ 89,90", img: "https://global-white-btksf55y1l.edgeone.app/IMG_20260509_160908.png", categoria: "fitness" },
+            { id: 4, nome: "Bola Campo Premium", preco: "R$ 119,90", img: "https://rubber-green-g2dceo46oh.edgeone.app/IMG_20260509_161608.png", categoria: "futebol" },
+            { id: 5, nome: "Regata Basquete Elite", preco: "R$ 99,90", img: "https://irrelevant-purple-dnnizl9pfh.edgeone.app/IMG_20260509_174929.png", categoria: "basquete" },
+            { id: 6, nome: "Joelheira Vôlei Pro", preco: "R$ 59,90", img: "https://past-harlequin-eewujyc9t5.edgeone.app/IMG_20260509_174944.png", categoria: "volei" },
+            { id: 7, nome: "Chuteira Society Speed", preco: "R$ 199,90", img: "https://wide-purple-puwijwl2jk.edgeone.app/IMG_20260509_174745.png", categoria: "futebol" },
+            { id: 8, nome: "Bola Basquete Oficial", preco: "R$ 149,90", img: "https://universal-yellow-wql3t8t6ye.edgeone.app/IMG_20260509_175718.png", categoria: "basquete" }
+        ];
+
+        // Lista de Categorias para a barra de filtros
+        const categoriasMenu = [
+            { id: "todos", label: "Todos" },
+            { id: "futebol", label: "Futebol" },
+            { id: "basquete", label: "Basquete" },
+            { id: "volei", label: "Vôlei" },
+            { id: "fitness", label: "Fitness" }
+        ];
+
+        // Lógica para ler a URL (Ex: catalogo.html?categoria=futebol)
+        const params = new URLSearchParams(window.location.search);
+        let categoriaAtiva = params.get('categoria') || 'todos';
+
+        // Elementos do DOM
+        const filterBar = document.getElementById('filter-bar');
+        const productGrid = document.getElementById('product-grid');
+
+        // Função para Renderizar os Botões de Filtro
+        function renderizarFiltros() {
+            filterBar.innerHTML = '';
+            categoriasMenu.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `filter-btn ${cat.id === categoriaAtiva ? 'active' : ''}`;
+                btn.innerText = cat.label;
+                btn.onclick = () => filtrarPor(cat.id);
+                filterBar.appendChild(btn);
+            });
+            // Rolar a barra de filtros para o item ativo (se for mobile e tiver muitos filtros)
+            const activeBtn = filterBar.querySelector('.active');
+            if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        // Função para Mudar o Filtro ao Clicar
+        function filtrarPor(idCategoria) {
+            categoriaAtiva = idCategoria;
+            // Atualiza a URL sem recarregar a página para o link ser compartilhável
+            const novaUrl = idCategoria === 'todos' ? window.location.pathname : `?categoria=${idCategoria}`;
+            window.history.pushState({}, '', novaUrl);
+            
+            renderizarFiltros();
+            renderizarProdutos();
+        }
+
+        // Função para Renderizar os Produtos no Grid
+        function renderizarProdutos() {
+            productGrid.innerHTML = ''; // Limpa a tela
+
+            // Filtra o array baseado na categoria ativa
+            const produtosFiltrados = categoriaAtiva === 'todos' 
+                ? produtos 
+                : produtos.filter(p => p.categoria === categoriaAtiva);
+
+            if (produtosFiltrados.length === 0) {
+                productGrid.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="#ccc" style="margin-bottom:10px;"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <br>Nenhum produto encontrado nesta categoria no momento.
+                    </div>`;
+                return;
+            }
+
+            // Cria o HTML para cada produto filtrado
+            produtosFiltrados.forEach((prod, index) => {
+                const delay = index * 0.05; // Pequeno delay em cascata para a animação
+                const cardHTML = `
+                    <div class="product-card" style="animation-delay: ${delay}s">
+                        <div class="product-img">
+                            <img src="${prod.img}" alt="${prod.nome}" loading="lazy">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${prod.nome}</div>
+                            <div class="product-price">${prod.preco}</div>
+                            <a href="compra.html?id=${prod.id}" class="btn-small">Comprar</a>
+                        </div>
+                    </div>
+                `;
+                productGrid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        // Inicia a página renderizando os componentes
+        window.onload = () => {
+            renderizarFiltros();
+            renderizarProdutos();
+        };
+    </script>
+</body>
+</html>

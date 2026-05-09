@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Menu e Agradecimentos | ALL SPORTS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= VARIÁVEIS ================= */
+        :root {
+            --blue: #0A2463;
+            --blue-light: #24418B;
+            --orange: #FF6B35;
+            --bg-light: #F8F9FA;
+            --text-dark: #1E1E24;
+            --text-gray: #6C757D;
+            --white: #FFFFFF;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --shadow-sm: 0 4px 10px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        /* ================= RESET ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-top: 60px;
+            padding-bottom: 80px; /* Espaço para a bottom nav */
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ================= HEADER ================= */
+        header {
+            position: fixed;
+            top: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .header-back { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--blue); }
+        .header-back svg { width: 22px; height: 22px; fill: var(--blue); }
+        .logo-text { font-weight: 800; font-size: 1.1rem; color: var(--blue); letter-spacing: 1px; }
+
+        /* ================= HERO VISUAL ================= */
+        .visual-hero {
+            position: relative;
+            width: 100%;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, var(--blue), var(--blue-light));
+            color: var(--white);
+            text-align: center;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        /* Elementos decorativos no fundo */
+        .visual-hero::before, .visual-hero::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .visual-hero::before {
+            width: 200px; height: 200px;
+            top: -50px; left: -50px;
+        }
+        .visual-hero::after {
+            width: 150px; height: 150px;
+            bottom: -30px; right: -30px;
+        }
+
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px auto;
+            backdrop-filter: blur(5px);
+            animation: float 4s ease-in-out infinite;
+        }
+        .hero-icon svg { width: 40px; height: 40px; fill: var(--orange); }
+
+        .visual-hero h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .visual-hero p {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 300px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* ================= AGRADECIMENTOS (CARDS) ================= */
+        .thanks-section {
+            padding: 30px 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 2px;
+        }
+
+        .credits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .credit-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-sm);
+            opacity: 0; /* Para animação inicial */
+            transform: translateY(20px);
+            animation: slideUpFade 0.6s ease forwards;
+        }
+
+        /* Delays para criar efeito de cascata (stagger) */
+        .credit-card:nth-child(1) { animation-delay: 0.1s; }
+        .credit-card:nth-child(2) { animation-delay: 0.2s; }
+        .credit-card:nth-child(3) { animation-delay: 0.3s; }
+        .credit-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .card-icon svg { width: 24px; height: 24px; fill: var(--blue); }
+
+        .card-content h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .card-content p {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            line-height: 1.4;
+        }
+
+        /* Versão em destaque para o usuário */
+        .credit-card.highlight {
+            background: linear-gradient(135deg, #FFeedd, #FFFFFF);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+        }
+        .credit-card.highlight .card-icon {
+            background: rgba(255, 107, 53, 0.1);
+        }
+        .credit-card.highlight .card-icon svg {
+            fill: var(--orange);
+        }
+
+        /* ================= NAVBAR MOBILE ================= */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            height: 65px;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-gray);
+            font-size: 0.7rem;
+            font-weight: 600;
+            width: 25%;
+            transition: all 0.2s;
+        }
+        .nav-item svg { width: 22px; height: 22px; fill: var(--text-gray); transition: fill 0.2s; }
+        
+        .nav-item.active { color: var(--blue); }
+        .nav-item.active svg { fill: var(--blue); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="header-back">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Voltar
+        </a>
+        <div class="logo-text">ALL SPORTS</div>
+    </header>
+
+    <section class="visual-hero">
+        <div class="hero-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <h1>Nosso Muito<br>Obrigado!</h1>
+        <p>A ALL SPORTS não seria a mesma sem a energia e paixão daqueles que caminham com a gente.</p>
+    </section>
+
+    <section class="thanks-section">
+        <h2 class="section-title">Créditos Especiais</h2>
+        
+        <div class="credits-list">
+            
+            <div class="credit-card highlight">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div class="card-content">
+                    <h3>Aos Nossos Clientes</h3>
+                    <p>Vocês são o motivo pelo qual inovamos todos os dias. Obrigado por vestir a nossa camisa e confiar no nosso trabalho.</p>
+                </div>
+            </div>
+
+            <div class="credit-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                </div>
+                <div class="card-content">
+                    <h3>Equipe de Tecnologia</h3>
+                    <p>Aos desenvolvedores e engenheiros que transformaram linhas de código nesta experiência fluida e moderna.</p>
+                </div>
+            </div>
+
+            <div class="credit-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                </div>
+                <div class="card-content">
+                    <h3>Designers & Criativos</h3>
+                    <p>Por desenharem não apenas interfaces, mas emoções e usabilidade focadas 100% no mobile-first.</p>
+                </div>
+            </div>
+
+            <div class="credit-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                </div>
+                <div class="card-content">
+                    <h3>Parceiros de Confecção</h3>
+                    <p>Agradecimento especial às fábricas e fornecedores que garantem a malha Dry-Fit de alta qualidade.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+        </a>
+        <a href="catalogo.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+            Catálogo
+        </a>
+        <a href="produtos.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+            Produtos
+        </a>
+        <a href="menu.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            Menu
+        </a>
+    </nav>
+
+</body>
+</html>
